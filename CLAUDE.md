@@ -4,17 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-Personal portfolio website for Devang Goyal (SRE/DevOps/Cloud Engineer) built with Next.js 14 and deployed to GitHub Pages at `clouddevang.github.io`.
+Personal portfolio website for Devang Goyal (SRE/DevOps/Cloud Engineer) built with Next.js and deployed to GitHub Pages at `clouddevang.github.io`.
 
 ## Tech Stack
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 16.1.6 (App Router, static export)
 - **Styling**: Tailwind CSS v3
-- **Blog**: MDX via `next-mdx-remote` + `gray-matter`
+- **Blog**: MDX via `next-mdx-remote` v6 + `gray-matter`
 - **Animations**: Framer Motion
 - **Icons**: Lucide React + React Icons
-- **Fonts**: Next/font with Inter + JetBrains Mono
-- **Deployment**: Static export for GitHub Pages
+- **Fonts**: Google Fonts (Inter + JetBrains Mono) via CDN
+- **Deployment**: GitHub Actions → GitHub Pages
+
+## Requirements
+
+- **Node.js 20+** (required by Next.js 16)
+- Use `nvm use 20` if needed
 
 ## Common Commands
 
@@ -28,8 +33,8 @@ npm run dev
 # Build for production (static export)
 npm run build
 
-# Build and prepare for GitHub Pages deployment
-npm run deploy
+# Lint
+npm run lint
 ```
 
 ## Project Structure
@@ -40,41 +45,46 @@ npm run deploy
 │   ├── page.tsx           # Home page (renders all sections)
 │   └── blog/              # Blog pages
 │       ├── page.tsx       # Blog listing
-│       └── [slug]/page.tsx # Individual posts
+│       └── [slug]/page.tsx # Individual posts (async params)
 ├── components/            # React components
-│   ├── Navbar.tsx        # Sticky navigation
-│   ├── Hero.tsx          # Hero section with typewriter
+│   ├── Navbar.tsx        # Fixed navigation with scroll handling
+│   ├── Hero.tsx          # Hero section with typewriter effect
 │   ├── About.tsx         # Bio and stats
-│   ├── Skills.tsx        # Skill badges by category
-│   ├── Experience.tsx    # Work timeline
-│   ├── Projects.tsx      # Project cards
+│   ├── Skills.tsx        # Skill badges + Emerging Tech section
+│   ├── Experience.tsx    # Work timeline (expandable achievements)
+│   ├── Projects.tsx      # Project cards with blog links
 │   ├── Education.tsx     # Education cards
-│   ├── Certifications.tsx # Cert badges
-│   ├── Blog.tsx          # Blog preview cards
-│   ├── Contact.tsx       # Contact form
+│   ├── Certifications.tsx # Cert badges (AWS/Azure/JLPT)
+│   ├── Testimonials.tsx  # Colleague testimonials
+│   ├── Blog.tsx          # Blog preview cards (clickable)
+│   ├── Contact.tsx       # Contact form + quick actions
 │   └── Footer.tsx        # Site footer
 ├── content/blog/          # MDX blog posts
 ├── data/resume.ts         # All resume data (single source of truth)
 ├── lib/mdx.ts            # MDX utilities
+├── public/               # Static assets
+│   └── Devang_Goyal_Resume_v4.pdf
 └── styles/globals.css     # Global styles + Tailwind
 ```
 
 ## Architecture Notes
 
-- **Data-driven**: All content comes from `data/resume.ts` - components import from here
-- **Static export**: Configured with `output: 'export'` for GitHub Pages compatibility
-- **Framer Motion**: Used for scroll animations and hover effects
-- **MDX blog**: Posts in `content/blog/` with frontmatter for metadata
+- **Data-driven**: All content comes from `data/resume.ts`
+- **Static export**: Configured with `output: 'export'` in `next.config.js`
+- **Navbar scroll**: Uses `window.scrollTo` with 64px offset for fixed navbar
+- **Blog cards**: Clickable via `onClick` + `router.push()`
+- **Experience**: Expandable achievements (shows first 5, click to expand)
 
 ## Design System
 
-Colors defined in `tailwind.config.ts`:
+Colors defined in `tailwind.config.ts` and `styles/globals.css`:
 - Background: `#0a0a0f`
 - Card: `#111118`
+- Border: `#1e293b`
 - Accent Blue: `#00D4FF`
 - Accent Green: `#00FF88`
-- AWS Orange: `#FF9900`
-- Azure Blue: `#0078D4`
+- Text Primary: `#e2e8f0`
+- Text Muted: `#64748b`
 
 ## Adding Content
 
@@ -90,5 +100,27 @@ readTime: "X min read"
 ---
 ```
 
+Also add to `components/Blog.tsx` blogPosts array for homepage preview.
+
 ### Updating Resume Data
 Edit `data/resume.ts` - all sections pull from this file.
+
+### Updating Testimonials
+Edit `components/Testimonials.tsx` - update the testimonials array.
+
+## Deployment
+
+Deployed via GitHub Actions (`.github/workflows/nextjs.yml`).
+
+### SSH Config for Push
+Uses `github-clouddevang` host with dedicated SSH key:
+```bash
+GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_clouddevang -o IdentitiesOnly=yes" git push origin main
+```
+
+## Known Patterns
+
+- Section padding: `pt-6 pb-16 sm:pt-8 sm:pb-20` (minimal top, more bottom)
+- Card hover: Uses `card-hover` class from globals.css
+- Animations: Framer Motion `containerVariants` + `itemVariants` pattern
+- Active nav detection: Checks `getBoundingClientRect().top <= 100`
