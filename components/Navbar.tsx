@@ -91,31 +91,36 @@ export default function Navbar() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={(e) => {
-                    if (link.href.startsWith('#')) {
-                      e.preventDefault();
-                      handleNavClick(link.href);
-                    }
-                  }}
-                  className={`text-sm font-medium transition-colors duration-200 relative ${
-                    activeSection === link.href.slice(1)
-                      ? 'text-accent-blue'
-                      : 'text-text-muted hover:text-text-primary'
-                  }`}
-                >
-                  {link.label}
-                  {activeSection === link.href.slice(1) && (
-                    <motion.div
-                      layoutId="activeSection"
-                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-accent-blue"
-                    />
-                  )}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const isActive = link.href.startsWith('#')
+                  ? activeSection === link.href.slice(1) && pathname === '/'
+                  : pathname.startsWith(link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={(e) => {
+                      if (link.href.startsWith('#')) {
+                        e.preventDefault();
+                        handleNavClick(link.href);
+                      }
+                    }}
+                    className={`text-sm font-medium transition-colors duration-200 relative ${
+                      isActive
+                        ? 'text-accent-blue'
+                        : 'text-text-muted hover:text-text-primary'
+                    }`}
+                  >
+                    {link.label}
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeSection"
+                        className="absolute -bottom-1 left-0 right-0 h-0.5 bg-accent-blue"
+                      />
+                    )}
+                  </Link>
+                );
+              })}
             </div>
 
             {/* Mobile Menu Button */}
@@ -141,25 +146,30 @@ export default function Navbar() {
             className="fixed inset-x-0 top-16 z-40 md:hidden bg-background/95 navbar-blur border-b border-border"
           >
             <div className="px-4 py-4 space-y-2">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={(e) => {
-                    if (link.href.startsWith('#')) {
-                      e.preventDefault();
-                    }
-                    handleNavClick(link.href);
-                  }}
-                  className={`block py-3 px-4 rounded-lg text-base font-medium transition-colors ${
-                    activeSection === link.href.slice(1)
-                      ? 'bg-accent-blue/10 text-accent-blue'
-                      : 'text-text-muted hover:bg-card hover:text-text-primary'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const isActive = link.href.startsWith('#')
+                  ? activeSection === link.href.slice(1) && pathname === '/'
+                  : pathname.startsWith(link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={(e) => {
+                      if (link.href.startsWith('#')) {
+                        e.preventDefault();
+                      }
+                      handleNavClick(link.href);
+                    }}
+                    className={`block py-3 px-4 rounded-lg text-base font-medium transition-colors ${
+                      isActive
+                        ? 'bg-accent-blue/10 text-accent-blue'
+                        : 'text-text-muted hover:bg-card hover:text-text-primary'
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
             </div>
           </motion.div>
         )}
