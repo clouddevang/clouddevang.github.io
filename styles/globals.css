@@ -21,12 +21,12 @@
 
 html {
   /* Smooth scroll only applied via JS for anchor links */
-  scroll-padding-top: 80px;
+  scroll-padding-top: 70px;
 }
 
 /* Offset for fixed navbar when scrolling to sections */
 section[id] {
-  scroll-margin-top: 80px;
+  scroll-margin-top: 70px;
 }
 
 body {
