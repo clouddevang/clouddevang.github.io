@@ -7,12 +7,11 @@ import { skills } from '@/data/resume';
 import {
   Cloud,
   Server,
-  Code2,
   GitBranch,
   Activity,
   FileCode,
   Layers,
-  Database,
+  Sparkles,
 } from 'lucide-react';
 import { FaAws, FaMicrosoft } from 'react-icons/fa';
 
@@ -105,6 +104,34 @@ export default function Skills() {
               </motion.div>
             ))}
           </div>
+
+          {/* Currently Learning */}
+          <motion.div variants={itemVariants} className="mt-12">
+            <div className="bg-card border border-accent-green/30 rounded-2xl p-6 sm:p-8">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-lg bg-accent-green/10 text-accent-green">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-semibold text-text-primary">
+                  Currently Learning
+                </h3>
+                <span className="px-2 py-0.5 text-xs font-mono bg-accent-green/10 text-accent-green rounded">
+                  Growth Mindset
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {['Rust', 'Go', 'eBPF', 'Cilium', 'ArgoCD', 'Crossplane', 'Platform Engineering'].map((skill) => (
+                  <motion.span
+                    key={skill}
+                    whileHover={{ scale: 1.05 }}
+                    className="px-3 py-1.5 text-sm font-mono bg-background border border-accent-green/30 rounded-lg text-accent-green cursor-default"
+                  >
+                    {skill}
+                  </motion.span>
+                ))}
+              </div>
+            </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>

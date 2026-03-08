@@ -9,6 +9,15 @@ import { Calendar, Clock, ArrowRight } from 'lucide-react';
 // Static blog data for homepage preview
 const blogPosts = [
   {
+    slug: 'slos-slis-error-budgets',
+    title: 'SLOs, SLIs, and Error Budgets: A Practical Guide for SREs',
+    date: '2025-01-20',
+    summary:
+      'A practical guide to implementing Service Level Objectives, Indicators, and Error Budgets—the foundation of modern SRE practices that every reliability engineer should master.',
+    tags: ['SRE', 'Observability', 'Reliability'],
+    readTime: '12 min read',
+  },
+  {
     slug: 'zero-trust-azure',
     title: 'Building Zero-Trust Infrastructure on Azure: A Production Story',
     date: '2024-12-15',
@@ -25,15 +34,6 @@ const blogPosts = [
       'A deep dive into when to use Azure Container Apps with KEDA versus Azure Functions for event-driven scaling, based on real performance benchmarks.',
     tags: ['Kubernetes', 'Azure', 'DevOps'],
     readTime: '6 min read',
-  },
-  {
-    slug: 'opentelemetry-in-practice',
-    title: 'OpenTelemetry in Practice: Vendor-Agnostic Observability at Scale',
-    date: '2024-11-10',
-    summary:
-      'Implementing distributed traces, metrics, and structured logs using the OTel SDK while maintaining flexibility to switch observability backends.',
-    tags: ['Observability', 'OTel', 'Datadog'],
-    readTime: '10 min read',
   },
 ];
 

@@ -57,6 +57,41 @@ export default function Hero() {
 
       {/* Content */}
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        {/* Profile Photo - Add your photo as /public/profile.jpg */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="mb-6"
+        >
+          <div className="relative w-32 h-32 sm:w-40 sm:h-40 mx-auto">
+            <div className="absolute inset-0 bg-gradient-to-r from-accent-blue to-accent-green rounded-full p-1">
+              <div className="w-full h-full rounded-full overflow-hidden bg-card flex items-center justify-center">
+                {/* Replace with: <Image src="/profile.jpg" ... /> when you add your photo */}
+                <span className="text-4xl sm:text-5xl font-bold gradient-text">
+                  {personal.name.split(' ').map(n => n[0]).join('')}
+                </span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Open to Opportunities Badge */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.05 }}
+          className="mb-4"
+        >
+          <span className="inline-flex items-center gap-2 px-4 py-2 bg-accent-green/10 border border-accent-green/30 rounded-full text-accent-green text-sm font-medium">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-green opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-green"></span>
+            </span>
+            Open to Opportunities
+          </span>
+        </motion.div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

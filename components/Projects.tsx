@@ -2,8 +2,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { projects } from '@/data/resume';
-import { ExternalLink, Github, Shield, DollarSign, Activity, MessageSquare } from 'lucide-react';
+import { BookOpen, Github, Shield, DollarSign, Activity, MessageSquare } from 'lucide-react';
 
 const iconMap: Record<string, React.ReactNode> = {
   'Zero-Trust Platform Redesign': <Shield className="w-8 h-8" />,
@@ -81,15 +82,13 @@ export default function Projects() {
                       </a>
                     )}
                     {project.link && (
-                      <a
+                      <Link
                         href={project.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
                         className="text-text-muted hover:text-accent-blue transition-colors"
-                        aria-label="View live project"
+                        aria-label="Read case study"
                       >
-                        <ExternalLink size={20} />
-                      </a>
+                        <BookOpen size={20} />
+                      </Link>
                     )}
                   </div>
                 </div>

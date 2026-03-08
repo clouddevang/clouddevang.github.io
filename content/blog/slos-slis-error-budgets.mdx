@@ -1,0 +1,207 @@
+---
+title: "SLOs, SLIs, and Error Budgets: A Practical Guide for SREs"
+date: "2025-01-20"
+summary: "A practical guide to implementing Service Level Objectives, Indicators, and Error Budgets—the foundation of modern SRE practices that every reliability engineer should master."
+tags: ["SRE", "Observability", "Reliability"]
+readTime: "12 min read"
+---
+
+Service Level Objectives (SLOs), Service Level Indicators (SLIs), and Error Budgets form the foundation of Site Reliability Engineering. Yet many teams struggle to implement them effectively. This guide shares practical lessons from implementing SLO-based reliability practices in production financial systems.
+
+## Understanding the SRE Reliability Stack
+
+Before diving into implementation, let's clarify the hierarchy:
+
+- **SLI (Service Level Indicator)**: A quantitative measure of service behavior (e.g., "99.2% of requests completed in under 200ms")
+- **SLO (Service Level Objective)**: The target value for an SLI (e.g., "99.9% of requests should complete in under 200ms")
+- **SLA (Service Level Agreement)**: A contract with consequences for missing SLOs (e.g., "If we miss 99.9%, customers get credits")
+- **Error Budget**: The allowed failure rate (e.g., "0.1% of requests can fail per month")
+
+## Choosing the Right SLIs
+
+The most common mistake teams make is tracking too many SLIs. Start with these four golden signals:
+
+### 1. Availability
+```
+availability = successful_requests / total_requests
+```
+
+For an API, this might be: "Percentage of HTTP requests returning 2xx or expected 4xx status codes."
+
+### 2. Latency
+```
+latency_sli = requests_under_threshold / total_requests
+```
+
+Track at multiple percentiles: p50 for typical experience, p99 for tail latency. For financial systems, we use p99.9.
+
+### 3. Throughput
+```
+throughput = successful_requests_per_second
+```
+
+Critical for batch processing systems and data pipelines.
+
+### 4. Error Rate
+```
+error_rate = failed_requests / total_requests
+```
+
+Distinguish between client errors (4xx) and server errors (5xx)—only count 5xx against your error budget.
+
+## Setting Realistic SLOs
+
+Here's a framework I use for setting SLOs:
+
+### Step 1: Measure Current Performance
+Don't guess. Run your system for 2-4 weeks and measure actual performance:
+
+```sql
+-- Example query for availability over 30 days
+SELECT
+  COUNT(CASE WHEN status_code < 500 THEN 1 END) * 100.0 / COUNT(*) as availability
+FROM request_logs
+WHERE timestamp > NOW() - INTERVAL '30 days';
+```
+
+### Step 2: Understand User Expectations
+Interview stakeholders:
+- What latency do users notice?
+- How much downtime is acceptable?
+- What's the business impact of degradation?
+
+### Step 3: Set Achievable Targets
+If your current availability is 99.5%, don't set an SLO of 99.99%. Start with 99.7% and improve incrementally.
+
+**Pro tip**: Your SLO should be slightly below your actual performance. This gives you room to experiment and deploy without constant alerts.
+
+## Implementing Error Budgets
+
+Error budgets are the game-changer. They answer: "How much unreliability can we tolerate?"
+
+### Calculating Error Budget
+
+For a 99.9% availability SLO over 30 days:
+```
+Error Budget = (1 - 0.999) × 30 days × 24 hours × 60 minutes
+             = 0.001 × 43,200 minutes
+             = 43.2 minutes of downtime allowed
+```
+
+### Error Budget Policy
+
+Here's the policy we implemented:
+
+| Budget Remaining | Action |
+|-----------------|--------|
+| > 50% | Normal development velocity |
+| 25-50% | Increased review rigor, limit risky changes |
+| 10-25% | Feature freeze, focus on reliability |
+| < 10% | All hands on reliability, no new features |
+
+### Burn Rate Alerts
+
+Instead of alerting on instantaneous errors, alert on burn rate—how fast you're consuming your error budget:
+
+```yaml
+# Prometheus alert for fast burn rate
+- alert: HighErrorBudgetBurn
+  expr: |
+    (
+      sum(rate(http_requests_total{status=~"5.."}[1h]))
+      / sum(rate(http_requests_total[1h]))
+    ) > (14.4 * 0.001)  # 14.4x burn rate = budget exhausted in 5 days
+  for: 5m
+  labels:
+    severity: critical
+```
+
+## Real-World Implementation: A Case Study
+
+At BitFlyer, we implemented SLOs for our trading API:
+
+### Initial State
+- No formal SLOs
+- Alerts on arbitrary thresholds
+- Constant alert fatigue
+- No clear prioritization
+
+### Implementation Steps
+
+**Week 1-2: Instrumentation**
+We added OpenTelemetry instrumentation to capture:
+- Request duration histograms
+- Status code counters
+- Dependency latencies
+
+**Week 3-4: Baseline Measurement**
+Measured actual performance:
+- Availability: 99.89%
+- P99 latency: 180ms
+- Error rate: 0.08%
+
+**Week 5-6: SLO Definition**
+Set initial SLOs:
+- Availability SLO: 99.9% (gives 43 min/month budget)
+- Latency SLO: 99% of requests < 200ms
+- Error rate SLO: < 0.1% server errors
+
+**Week 7-8: Alerting Migration**
+Replaced 47 arbitrary alerts with 6 SLO-based alerts:
+- 2 availability burn rate alerts (fast/slow)
+- 2 latency burn rate alerts (fast/slow)
+- 2 error rate burn rate alerts (fast/slow)
+
+### Results After 3 Months
+- Alert volume reduced by 73%
+- MTTR improved by 45%
+- Engineering velocity increased (fewer interruptions)
+- Clear prioritization framework for incidents
+
+## Common Pitfalls to Avoid
+
+### 1. SLO Perfection Syndrome
+Don't aim for 100% availability. It's:
+- Mathematically impossible
+- Prohibitively expensive
+- Prevents innovation
+
+The difference between 99.9% and 99.99% is a 10x cost increase for most systems.
+
+### 2. Too Many SLOs
+Start with 3-5 SLOs per service. More creates confusion and alert fatigue.
+
+### 3. Ignoring Dependencies
+Your service's SLO is bounded by your dependencies' SLOs. If your database has 99.9% availability, you cannot achieve 99.99% for your API.
+
+### 4. Set and Forget
+Review SLOs quarterly:
+- Are they still relevant?
+- Are they too tight (constant alerts) or too loose (not protecting users)?
+- Has the business context changed?
+
+## Tooling Recommendations
+
+For implementing SLOs, consider:
+
+1. **Metrics Collection**: Prometheus, Datadog, or Azure Monitor
+2. **SLO Tracking**: Sloth, Google SLO Generator, or Datadog SLO
+3. **Error Budget Visualization**: Grafana dashboards, custom Datadog dashboards
+4. **Alerting**: PagerDuty, Opsgenie integrated with burn rate alerts
+
+## Conclusion
+
+SLOs, SLIs, and error budgets aren't just metrics—they're a cultural shift toward data-driven reliability decisions. Start simple:
+
+1. Instrument your critical paths
+2. Measure for 2-4 weeks
+3. Set conservative SLOs
+4. Implement burn rate alerting
+5. Create an error budget policy
+6. Review and iterate quarterly
+
+The goal isn't perfect reliability—it's appropriate reliability that balances user happiness with engineering velocity.
+
+---
+
+*Have questions about implementing SLOs? Connect with me on [LinkedIn](https://linkedin.com/in/devang20) or reach out via the contact form.*

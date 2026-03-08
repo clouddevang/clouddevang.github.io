@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { personal } from '@/data/resume';
-import { Send, Github, Linkedin, Mail, MapPin } from 'lucide-react';
+import { Send, Github, Linkedin, Mail, MapPin, FileText } from 'lucide-react';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -101,6 +101,43 @@ export default function Contact() {
                   challenging infrastructure problems, or just connecting with
                   fellow engineers. Feel free to reach out!
                 </p>
+              </div>
+
+              {/* Quick Actions for Recruiters */}
+              <div className="space-y-3">
+                <a
+                  href={`mailto:${personal.email}?subject=Opportunity%20Discussion`}
+                  className="flex items-center gap-3 p-4 bg-card border border-border rounded-xl hover:border-accent-green/50 transition-colors group"
+                >
+                  <div className="p-2 rounded-lg bg-accent-green/10 text-accent-green">
+                    <Mail size={20} />
+                  </div>
+                  <div>
+                    <p className="text-text-primary font-medium group-hover:text-accent-green transition-colors">
+                      Email Directly
+                    </p>
+                    <p className="text-text-muted text-sm">
+                      Usually respond within 24 hours
+                    </p>
+                  </div>
+                </a>
+                <a
+                  href="/Devang_Goyal_Resume_v4.pdf"
+                  download
+                  className="flex items-center gap-3 p-4 bg-card border border-border rounded-xl hover:border-accent-blue/50 transition-colors group"
+                >
+                  <div className="p-2 rounded-lg bg-accent-blue/10 text-accent-blue">
+                    <FileText size={20} />
+                  </div>
+                  <div>
+                    <p className="text-text-primary font-medium group-hover:text-accent-blue transition-colors">
+                      Download Resume
+                    </p>
+                    <p className="text-text-muted text-sm">
+                      PDF format, ATS-friendly
+                    </p>
+                  </div>
+                </a>
               </div>
 
               {/* Location */}
