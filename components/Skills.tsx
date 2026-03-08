@@ -105,7 +105,7 @@ export default function Skills() {
             ))}
           </div>
 
-          {/* Currently Learning */}
+          {/* Emerging Tech */}
           <motion.div variants={itemVariants} className="mt-12">
             <div className="bg-card border border-accent-green/30 rounded-2xl p-6 sm:p-8">
               <div className="flex items-center gap-3 mb-4">
@@ -113,14 +113,11 @@ export default function Skills() {
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <h3 className="text-lg font-semibold text-text-primary">
-                  Currently Learning
+                  Emerging Tech
                 </h3>
-                <span className="px-2 py-0.5 text-xs font-mono bg-accent-green/10 text-accent-green rounded">
-                  Growth Mindset
-                </span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {['Rust', 'Go', 'eBPF', 'Cilium', 'ArgoCD', 'Crossplane', 'Platform Engineering'].map((skill) => (
+                {['Agentic AI Workflows', 'ArgoCD', 'Platform Engineering'].map((skill) => (
                   <motion.span
                     key={skill}
                     whileHover={{ scale: 1.05 }}
