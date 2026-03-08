@@ -80,63 +80,61 @@ export default function Blog() {
 
           {/* Blog Cards */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {blogPosts.map((post, index) => (
-              <motion.article
-                key={post.slug}
-                variants={itemVariants}
-                whileHover={{ y: -5 }}
-                className="bg-card border border-border rounded-2xl p-6 card-hover group flex flex-col"
-              >
-                {/* Meta */}
-                <div className="flex items-center gap-4 text-sm text-text-muted mb-4">
-                  <span className="flex items-center gap-1">
-                    <Calendar size={14} />
-                    {new Date(post.date).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock size={14} />
-                    {post.readTime}
-                  </span>
-                </div>
-
-                {/* Title */}
-                <h3 className="text-lg font-bold text-text-primary mb-3 group-hover:text-accent-blue transition-colors line-clamp-2">
-                  {post.title}
-                </h3>
-
-                {/* Summary */}
-                <p className="text-text-muted text-sm leading-relaxed mb-4 flex-grow line-clamp-3">
-                  {post.summary}
-                </p>
-
-                {/* Tags */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {post.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2 py-1 text-xs font-mono bg-accent-blue/10 text-accent-blue rounded"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Read More Link */}
-                <Link
-                  href={`/blog/${post.slug}`}
-                  className="inline-flex items-center gap-2 text-accent-green font-medium text-sm group/link hover:gap-3 transition-all"
+            {blogPosts.map((post) => (
+              <Link key={post.slug} href={`/blog/${post.slug}`} className="block">
+                <motion.article
+                  variants={itemVariants}
+                  whileHover={{ y: -5 }}
+                  className="bg-card border border-border rounded-2xl p-6 card-hover group flex flex-col h-full cursor-pointer"
                 >
-                  Read More
-                  <ArrowRight
-                    size={16}
-                    className="group-hover/link:translate-x-1 transition-transform"
-                  />
-                </Link>
-              </motion.article>
+                  {/* Meta */}
+                  <div className="flex items-center gap-4 text-sm text-text-muted mb-4">
+                    <span className="flex items-center gap-1">
+                      <Calendar size={14} />
+                      {new Date(post.date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock size={14} />
+                      {post.readTime}
+                    </span>
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="text-lg font-bold text-text-primary mb-3 group-hover:text-accent-blue transition-colors line-clamp-2">
+                    {post.title}
+                  </h3>
+
+                  {/* Summary */}
+                  <p className="text-text-muted text-sm leading-relaxed mb-4 flex-grow line-clamp-3">
+                    {post.summary}
+                  </p>
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {post.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-2 py-1 text-xs font-mono bg-accent-blue/10 text-accent-blue rounded"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Read More */}
+                  <span className="inline-flex items-center gap-2 text-accent-green font-medium text-sm group-hover:gap-3 transition-all">
+                    Read Article
+                    <ArrowRight
+                      size={16}
+                      className="group-hover:translate-x-1 transition-transform"
+                    />
+                  </span>
+                </motion.article>
+              </Link>
             ))}
           </div>
 
