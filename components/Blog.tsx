@@ -60,7 +60,7 @@ export default function Blog() {
   const router = useRouter();
 
   return (
-    <section id="blog" className="py-20 sm:py-32">
+    <section id="blog" className="py-16 sm:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           variants={containerVariants}

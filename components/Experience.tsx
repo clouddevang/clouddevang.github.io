@@ -65,7 +65,7 @@ export default function Experience() {
   };
 
   return (
-    <section id="experience" className="py-20 sm:py-32">
+    <section id="experience" className="py-16 sm:py-20">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           variants={containerVariants}

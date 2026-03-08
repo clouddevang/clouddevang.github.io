@@ -48,7 +48,7 @@ export default function Skills() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   return (
-    <section id="skills" className="py-20 sm:py-32 bg-card/30">
+    <section id="skills" className="py-16 sm:py-20 bg-card/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           variants={containerVariants}
