@@ -1,0 +1,154 @@
+---
+title: "KEDA vs Azure Functions: Choosing the Right Autoscaler for Bursty Workloads"
+date: "2024-11-28"
+summary: "A deep dive into when to use Azure Container Apps with KEDA versus Azure Functions for event-driven scaling, based on real performance benchmarks."
+tags: ["Kubernetes", "Azure", "DevOps"]
+readTime: "6 min read"
+---
+
+When we needed to process millions of events from Azure Service Bus, the obvious choice seemed to be Azure Functions. Serverless, event-driven, automatic scaling—what's not to love? But after months of production experience, we migrated to Azure Container Apps with KEDA. Here's why, and when you might want to make the same choice.
+
+## The Use Case: Bursty Event Processing
+
+Our system processed financial transactions from a message queue. The traffic pattern was extremely bursty:
+
+- **Off-peak**: 10-50 messages per second
+- **Peak**: 10,000+ messages per second
+- **Ramp time**: Bursts arrive within seconds
+
+Azure Functions' scale controller is designed for this pattern. It monitors queue depth and scales out workers automatically. In theory, perfect.
+
+## The Problems We Encountered
+
+### 1. Cold Start Latency
+
+Azure Functions (Consumption plan) exhibited cold start times of 5-10 seconds for our .NET 6 application. During sudden bursts, the queue would accumulate thousands of messages before enough instances were warm.
+
+We tried the Premium plan, which keeps pre-warmed instances ready. This helped, but at significant cost—we were paying for idle compute 24/7.
+
+### 2. Scaling Granularity
+
+The Azure Functions scale controller makes decisions based on aggregate metrics. For Service Bus, it examines message count and age. But the scaling algorithm is opaque, and we had limited control over:
+
+- **Scale-out threshold**: How many messages trigger a new instance?
+- **Scale-in behavior**: How quickly do instances terminate?
+- **Maximum instances**: Hard limits that required support tickets to raise
+
+We needed finer control to optimize for our specific latency requirements.
+
+### 3. Instance Limits
+
+Our function sometimes needed 50+ concurrent instances to process bursts. Azure Functions has per-app limits that required special configuration. More importantly, rapid scaling caused resource contention in the underlying infrastructure.
+
+## Enter KEDA on Azure Container Apps
+
+KEDA (Kubernetes Event-driven Autoscaling) provides the same event-driven scaling but with explicit, configurable rules. Azure Container Apps integrates KEDA natively, giving us serverless simplicity with Kubernetes-level control.
+
+### The Migration
+
+Moving from Azure Functions to Container Apps required:
+
+1. **Containerizing the application**: Our function code became a container image
+2. **Configuring KEDA scalers**: Explicit rules for Service Bus scaling
+3. **Setting up Container Apps**: Managed Kubernetes without the management overhead
+
+Here's our KEDA configuration:
+
+```yaml
+scale:
+  minReplicas: 2
+  maxReplicas: 100
+  rules:
+    - name: service-bus-scaler
+      custom:
+        type: azure-servicebus
+        metadata:
+          queueName: transactions
+          messageCount: "50"
+          namespace: our-namespace
+        auth:
+          - secretRef: servicebus-connection
+            triggerParameter: connection
+```
+
+Key differences from Azure Functions:
+
+- **Explicit message threshold**: Scale out when queue has 50+ messages (configurable)
+- **Minimum replicas**: Always keep 2 instances warm (no cold starts)
+- **Maximum replicas**: Set exactly what we need, no support tickets
+
+### Performance Comparison
+
+We ran identical workloads on both platforms:
+
+| Metric | Azure Functions | Container Apps + KEDA |
+|--------|----------------|----------------------|
+| Cold start (p95) | 8.2 seconds | 0 (always warm) |
+| Scale-out time | 15-30 seconds | 5-10 seconds |
+| Cost (monthly) | $2,400 | $1,800 |
+| Max throughput | 8,000 msg/sec | 15,000 msg/sec |
+
+The cost reduction came from:
+- More efficient bin-packing of containers
+- No Premium plan pre-warm charges
+- Faster scale-down during quiet periods
+
+## When to Choose Azure Functions
+
+Azure Functions still wins for certain scenarios:
+
+### 1. Simple HTTP APIs
+For low-traffic APIs with occasional spikes, the Consumption plan's pay-per-execution model is unbeatable. Cold starts matter less for APIs where latency is measured in seconds.
+
+### 2. Timer-Triggered Jobs
+Scheduled tasks that run once per hour don't need warm instances. Azure Functions' timer trigger is simpler to configure than a CronJob equivalent.
+
+### 3. Rapid Prototyping
+When you need to deploy something quickly, Azure Functions' binding system is incredibly productive. Input/output bindings for Blob Storage, Cosmos DB, and Service Bus require minimal code.
+
+### 4. Teams Without Container Experience
+Not every team has container expertise. Azure Functions abstracts away the infrastructure entirely, which is valuable for teams focused on business logic.
+
+## When to Choose KEDA + Container Apps
+
+Choose Container Apps with KEDA when:
+
+### 1. You Need Predictable Cold Starts
+If your SLA requires sub-second latency, keeping minimum replicas warm is essential. KEDA makes this configuration explicit.
+
+### 2. You Have Complex Scaling Requirements
+Multiple triggers, custom metrics, or specific threshold values require KEDA's flexibility. The scaling rules are transparent and version-controlled.
+
+### 3. Your Workload is Container-Native
+If you're already building containers for other environments (local development, other clouds), Container Apps provides consistency without Kubernetes complexity.
+
+### 4. Cost Optimization Matters
+For high-volume workloads, Container Apps' consumption-based billing often works out cheaper than Functions Premium. Run the numbers for your specific usage pattern.
+
+## Hybrid Approaches
+
+We actually use both in production:
+
+- **Azure Functions**: Internal tools, scheduled jobs, low-traffic APIs
+- **Container Apps + KEDA**: High-volume event processing, latency-sensitive workloads
+
+The platforms aren't mutually exclusive. Choose based on the specific requirements of each workload.
+
+## Implementation Tips
+
+If you're migrating from Functions to Container Apps:
+
+1. **Start with KEDA documentation**: Understanding the scalers is crucial
+2. **Test scaling behavior**: Use load testing to verify your configuration
+3. **Monitor scale events**: Azure Monitor shows container instance counts over time
+4. **Set alerts on queue depth**: Catch scaling issues before they become outages
+
+For Service Bus specifically, configure dead-letter queue monitoring. KEDA scales based on active messages, not dead letters.
+
+## Conclusion
+
+Azure Functions and KEDA solve similar problems with different tradeoffs. Functions optimizes for simplicity; KEDA optimizes for control. Neither is universally better.
+
+For our bursty, latency-sensitive workload, KEDA's explicit configuration and warm instance support delivered better performance at lower cost. Your workload might be different.
+
+The best approach? Prototype both. Azure makes it easy to try Container Apps alongside Functions. Let the metrics guide your decision.

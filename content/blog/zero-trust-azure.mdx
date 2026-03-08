@@ -1,0 +1,128 @@
+---
+title: "Building Zero-Trust Infrastructure on Azure: A Production Story"
+date: "2024-12-15"
+summary: "How we redesigned our entire backend infrastructure with VNet integration, private endpoints, and RBAC-enforced Key Vault access to achieve true zero-trust architecture."
+tags: ["Azure", "Security", "SRE"]
+readTime: "8 min read"
+---
+
+When I joined the platform team at a financial services company, I inherited an infrastructure that, while functional, had significant security gaps. APIs were exposed to the public internet, database connections traversed public networks, and secret management relied on application configuration files. This is the story of how we transformed that architecture into a true zero-trust environment.
+
+## The Problem: Trust Boundaries Were Too Wide
+
+Our initial architecture followed a common anti-pattern: everything inside the "corporate network" was trusted. Azure App Services communicated with Azure SQL over public endpoints. Key Vault secrets were fetched using connection strings stored in app settings. Storage accounts accepted requests from any IP address.
+
+The reality of modern cloud architecture is that **there is no perimeter**. Zero-trust assumes that every request, whether internal or external, must be authenticated and authorized. Our infrastructure violated this principle at multiple levels.
+
+## The Architecture Redesign
+
+### 1. VNet Integration for All Compute
+
+The first major change was enabling VNet integration for every compute resource. Azure App Services, Azure Functions, and Azure Container Apps were all connected to a dedicated virtual network.
+
+```
+VNet Architecture:
+├── Management Subnet (10.0.1.0/24)
+│   └── Jumpbox, Bastion
+├── App Subnet (10.0.2.0/24)
+│   └── App Services, Functions
+├── Container Subnet (10.0.3.0/24)
+│   └── Container Apps
+└── Data Subnet (10.0.4.0/24)
+    └── Private Endpoints
+```
+
+With VNet integration, outbound traffic from our applications now routes through the virtual network, allowing us to control egress through Network Security Groups and route tables.
+
+### 2. Private Endpoints for Data Services
+
+The most critical change was eliminating public endpoints for all data services. Azure SQL, Key Vault, Storage Accounts, and Service Bus were all configured with private endpoints.
+
+Private endpoints create a network interface inside your VNet with a private IP address. When your application connects to `yourdb.database.windows.net`, DNS resolution returns the private IP (e.g., `10.0.4.10`) instead of the public IP.
+
+This required careful DNS configuration:
+
+- **Private DNS Zones**: We created private DNS zones for each service type (`privatelink.database.windows.net`, `privatelink.vaultcore.azure.net`, etc.)
+- **VNet Links**: Each private DNS zone was linked to our VNet
+- **Record Management**: Private endpoints automatically register A records in these zones
+
+The result: **zero public database exposure**. Even if an attacker compromised our application, they couldn't exfiltrate data over the internet because our SQL Server doesn't have a public IP.
+
+### 3. RBAC-Enforced Key Vault Access
+
+Instead of connection strings, we moved to managed identity authentication with RBAC. Each application is assigned a system-managed identity, and Key Vault access is granted through role assignments.
+
+```typescript
+// Old approach - connection string
+const client = new SecretClient(vaultUrl, new DefaultAzureCredential());
+
+// New approach - same code, but identity is VNet-integrated
+// and Key Vault only accepts requests from our VNet
+const client = new SecretClient(vaultUrl, new DefaultAzureCredential());
+```
+
+The code didn't change, but the security posture did. Key Vault now:
+- Rejects requests from public internet
+- Only accepts requests from our VNet via private endpoint
+- Requires managed identity authentication (no secrets to manage)
+- Enforces RBAC permissions (least-privilege access)
+
+### 4. Service Endpoints for Azure SQL
+
+While private endpoints are ideal for most scenarios, we also used service endpoints for Azure SQL to provide defense in depth. Service endpoints route traffic through Azure's backbone network while allowing firewall rules at the SQL Server level.
+
+Our SQL Server firewall configuration:
+- **Deny public access**: Toggle disabled
+- **Virtual network rules**: Allow traffic from app subnet only
+- **Private endpoint**: Primary access method
+
+This means even if someone obtained valid credentials, they couldn't connect from outside our VNet.
+
+## Lessons Learned
+
+### DNS is Everything
+
+The most challenging aspect wasn't the security configuration—it was DNS. When you enable private endpoints, you need to ensure that DNS resolution works correctly both from within Azure and from developer workstations.
+
+We implemented split-brain DNS:
+- Inside VNet: Private DNS zones return private IPs
+- Outside VNet: Azure DNS returns public IPs (which are blocked by firewall)
+
+For local development, developers connect via VPN, and their DNS queries route to Azure DNS, resolving to private endpoints.
+
+### Managed Identity Adoption Takes Time
+
+Moving from connection strings to managed identity required updating every application. Some third-party libraries didn't support managed identity initially, requiring workarounds or upgrades.
+
+The key was implementing changes incrementally:
+1. Enable managed identity on the resource
+2. Grant RBAC permissions
+3. Update application code to use `DefaultAzureCredential`
+4. Remove the old connection string
+5. Verify with monitoring
+
+### Cost Considerations
+
+Private endpoints aren't free. Each private endpoint incurs a small hourly cost plus data processing charges. For a large deployment with many endpoints, this adds up.
+
+We optimized costs by:
+- Consolidating storage accounts where possible
+- Using service endpoints as a complement (free)
+- Implementing shared private endpoints for multi-region deployments
+
+## The Results
+
+After implementing zero-trust architecture:
+
+- **Zero public database exposure**: All data services are private endpoint only
+- **50% reduction in attack surface**: No public IPs on backend infrastructure
+- **Simplified secret management**: Managed identity eliminated most secrets
+- **Improved compliance posture**: SOC 2 and PCI DSS audits became straightforward
+
+The most important outcome wasn't technical—it was cultural. The team now defaults to private, authenticated, authorized communication for every new service. Zero-trust isn't a destination; it's a way of building systems.
+
+## Conclusion
+
+Building zero-trust infrastructure on Azure requires careful planning, especially around networking and DNS. But the security benefits are substantial. By eliminating implicit trust and enforcing authentication at every boundary, we've created an architecture that's resilient to both external attacks and internal compromise.
+
+If you're starting a similar journey, begin with VNet integration. Once your compute resources are in a VNet, private endpoints and RBAC become natural extensions. And remember: zero-trust is a principle, not a product. Every architecture decision should ask, "What happens if this is compromised?"

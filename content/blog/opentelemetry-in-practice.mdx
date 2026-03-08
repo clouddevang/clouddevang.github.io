@@ -1,0 +1,256 @@
+---
+title: "OpenTelemetry in Practice: Vendor-Agnostic Observability at Scale"
+date: "2024-11-10"
+summary: "Implementing distributed traces, metrics, and structured logs using the OTel SDK while maintaining flexibility to switch observability backends."
+tags: ["Observability", "OTel", "Datadog"]
+readTime: "10 min read"
+---
+
+When we started redesigning our customer-facing platform, observability was a first-class concern. We had been using a mix of Azure Application Insights, custom logging, and ad-hoc metrics—a common pattern that leads to gaps in visibility and vendor lock-in. This time, we chose OpenTelemetry (OTel) as our observability foundation. Here's what we learned implementing it in production.
+
+## Why OpenTelemetry?
+
+OpenTelemetry is a CNCF project that provides vendor-neutral APIs, SDKs, and tools for collecting telemetry data. The key benefits:
+
+1. **Vendor Flexibility**: Export to any backend (Datadog, Jaeger, Azure Monitor, etc.)
+2. **Unified API**: One SDK for traces, metrics, and logs
+3. **Industry Standard**: Growing ecosystem of instrumentation libraries
+4. **Future-Proof**: Active community and broad industry adoption
+
+We chose Datadog as our initial backend, but the real value is flexibility. When costs or features change, we can switch backends without rewriting instrumentation code.
+
+## The Three Pillars, Unified
+
+OpenTelemetry handles three types of telemetry:
+
+### Traces
+Distributed traces follow a request across service boundaries. Each span represents a unit of work with timing, attributes, and relationships to other spans.
+
+### Metrics
+Numerical measurements like request counts, latency percentiles, and business metrics. OTel supports counters, gauges, and histograms.
+
+### Logs
+Structured log records with context. OTel logs include trace context, enabling correlation between logs and traces.
+
+## Implementation Architecture
+
+Our architecture uses the OTel Collector as a central aggregation point:
+
+```
+[Application] → [OTel SDK] → [OTel Collector] → [Datadog]
+                                      ↓
+                               [Azure Monitor] (backup)
+```
+
+The Collector provides:
+- **Buffering**: Handles backend unavailability
+- **Processing**: Sampling, filtering, attribute manipulation
+- **Multi-export**: Send to multiple backends simultaneously
+
+### SDK Configuration
+
+We use the .NET OpenTelemetry SDK. Here's our configuration:
+
+```csharp
+services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource
+        .AddService(serviceName: "payment-service")
+        .AddAttributes(new Dictionary<string, object>
+        {
+            ["environment"] = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
+            ["version"] = Assembly.GetExecutingAssembly().GetName().Version.ToString()
+        }))
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddSqlClientInstrumentation()
+        .AddSource("PaymentService")
+        .AddOtlpExporter(options =>
+        {
+            options.Endpoint = new Uri("http://otel-collector:4317");
+        }))
+    .WithMetrics(metrics => metrics
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddMeter("PaymentService")
+        .AddOtlpExporter(options =>
+        {
+            options.Endpoint = new Uri("http://otel-collector:4317");
+        }));
+```
+
+Key configuration choices:
+
+1. **Resource attributes**: Service name, environment, and version tag every signal
+2. **Auto-instrumentation**: ASP.NET Core, HttpClient, and SQL are instrumented automatically
+3. **Custom sources**: Our business logic emits additional spans and metrics
+4. **OTLP export**: The OpenTelemetry Protocol is the native format for the Collector
+
+### Custom Instrumentation
+
+Auto-instrumentation covers HTTP and database calls, but business logic needs manual spans:
+
+```csharp
+public class PaymentProcessor
+{
+    private static readonly ActivitySource ActivitySource = new("PaymentService");
+    private static readonly Meter Meter = new("PaymentService");
+    private static readonly Counter<long> PaymentsProcessed =
+        Meter.CreateCounter<long>("payments.processed", "count");
+
+    public async Task ProcessPayment(Payment payment)
+    {
+        using var activity = ActivitySource.StartActivity("ProcessPayment");
+        activity?.SetTag("payment.amount", payment.Amount);
+        activity?.SetTag("payment.currency", payment.Currency);
+
+        try
+        {
+            // Business logic
+            await ValidatePayment(payment);
+            await ExecutePayment(payment);
+
+            PaymentsProcessed.Add(1,
+                new KeyValuePair<string, object>("status", "success"),
+                new KeyValuePair<string, object>("currency", payment.Currency));
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            PaymentsProcessed.Add(1,
+                new KeyValuePair<string, object>("status", "failure"));
+            throw;
+        }
+    }
+}
+```
+
+This creates:
+- A span for each payment with amount and currency attributes
+- A counter metric with success/failure dimensions
+
+### Structured Logging with Trace Context
+
+OTel logs aren't just text—they're structured records with trace context:
+
+```csharp
+logger.LogInformation(
+    "Payment {PaymentId} processed for {Amount} {Currency}",
+    payment.Id, payment.Amount, payment.Currency);
+```
+
+The OTel logging bridge automatically adds:
+- `trace_id`: Links this log to the active trace
+- `span_id`: Links to the specific span
+- `severity`: Derived from the log level
+- Structured attributes from the message template
+
+In Datadog, clicking on a log entry shows the full trace that generated it. No correlation IDs to manage manually.
+
+## Collector Configuration
+
+The OTel Collector is the heart of our observability pipeline:
+
+```yaml
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 10s
+    send_batch_size: 10000
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 1000
+  attributes:
+    actions:
+      - key: team
+        value: platform
+        action: insert
+
+exporters:
+  datadog:
+    api:
+      key: ${DD_API_KEY}
+  azuremonitor:
+    connection_string: ${AZURE_MONITOR_CONNECTION_STRING}
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes]
+      exporters: [datadog, azuremonitor]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [datadog]
+```
+
+Key patterns:
+
+1. **Batching**: Reduces network overhead by sending telemetry in batches
+2. **Memory limiting**: Prevents collector OOM during traffic spikes
+3. **Attribute injection**: Adds consistent tags across all telemetry
+4. **Multi-export**: Primary to Datadog, backup to Azure Monitor
+
+## Lessons Learned
+
+### Sampling is Essential
+
+At scale, 100% trace sampling is expensive. We use a combination:
+
+- **Head-based sampling**: 10% of all traces
+- **Tail-based sampling**: 100% of error traces
+- **Priority sampling**: 100% for critical paths
+
+The Collector's tail sampling processor examines completed traces before deciding to keep them.
+
+### Cardinality Matters
+
+High-cardinality attributes (user IDs, request IDs) on metrics create explosion in metric storage. We learned to:
+
+- Use high-cardinality attributes only on traces
+- Keep metric dimensions bounded (status codes, service names, regions)
+- Use exemplars to link metrics to representative traces
+
+### Context Propagation is Tricky
+
+Traces only work if context propagates correctly. We encountered issues with:
+
+- **Async boundaries**: Ensure activity context flows to background tasks
+- **Message queues**: Propagate trace context in message headers
+- **Cross-language services**: Use W3C Trace Context format for compatibility
+
+### Start with Auto-Instrumentation
+
+Don't try to instrument everything manually. Start with auto-instrumentation libraries for:
+- HTTP servers and clients
+- Database clients
+- Message queue clients
+
+Add custom instrumentation incrementally for business-specific visibility.
+
+## The Results
+
+After implementing OpenTelemetry:
+
+- **Mean time to detection**: Reduced by 50% with correlated traces and logs
+- **Cross-service debugging**: Single trace view shows entire request flow
+- **Backend flexibility**: Successfully tested migration to alternative backends
+- **Cost visibility**: Metrics show resource consumption per feature
+
+The most valuable outcome: when incidents occur, engineers start with a trace, not a sea of logs. Root cause identification that used to take hours now takes minutes.
+
+## Conclusion
+
+OpenTelemetry requires upfront investment—SDK configuration, Collector deployment, team education. But the payoff is substantial: unified observability that's not locked to any vendor.
+
+If you're starting fresh, OpenTelemetry is the clear choice. If you're migrating from a proprietary solution, start with new services and gradually expand. The ecosystem is mature enough for production use, and the community is only growing.
+
+The future of observability is open standards. OpenTelemetry is that standard.
