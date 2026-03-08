@@ -14,7 +14,7 @@ const navLinks = [
   { href: '#projects', label: 'Projects' },
   { href: '#education', label: 'Education' },
   { href: '#certifications', label: 'Certifications' },
-  { href: '/blog', label: 'Blog' },
+  { href: '#blog', label: 'Blog' },
   { href: '#contact', label: 'Contact' },
 ];
 
@@ -92,8 +92,10 @@ export default function Navbar() {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
               {navLinks.map((link) => {
+                const sectionName = link.href.slice(1);
                 const isActive = link.href.startsWith('#')
-                  ? activeSection === link.href.slice(1) && pathname === '/'
+                  ? (activeSection === sectionName && pathname === '/') ||
+                    (sectionName === 'blog' && pathname.startsWith('/blog'))
                   : pathname.startsWith(link.href);
                 return (
                   <Link
@@ -147,8 +149,10 @@ export default function Navbar() {
           >
             <div className="px-4 py-4 space-y-2">
               {navLinks.map((link) => {
+                const sectionName = link.href.slice(1);
                 const isActive = link.href.startsWith('#')
-                  ? activeSection === link.href.slice(1) && pathname === '/'
+                  ? (activeSection === sectionName && pathname === '/') ||
+                    (sectionName === 'blog' && pathname.startsWith('/blog'))
                   : pathname.startsWith(link.href);
                 return (
                   <Link
