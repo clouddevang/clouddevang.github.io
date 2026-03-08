@@ -57,7 +57,12 @@ export default function Navbar() {
       if (isHomePage) {
         const element = document.getElementById(href.slice(1));
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
+          const navbarHeight = 64;
+          const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({
+            top: elementPosition - navbarHeight,
+            behavior: 'smooth'
+          });
         }
       } else {
         router.push('/' + href);
