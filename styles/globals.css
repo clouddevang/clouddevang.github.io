@@ -20,7 +20,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  /* Smooth scroll only applied via JS for anchor links */
 }
 
 body {
