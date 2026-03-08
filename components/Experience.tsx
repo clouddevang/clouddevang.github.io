@@ -1,9 +1,10 @@
 // filepath: components/Experience.tsx
 'use client';
 
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { experience } from '@/data/resume';
-import { Briefcase, MapPin, Calendar } from 'lucide-react';
+import { MapPin, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -53,6 +54,16 @@ function highlightMetrics(text: string, metrics: string[]): React.ReactNode {
 }
 
 export default function Experience() {
+  const [expandedJobs, setExpandedJobs] = useState<number[]>([]);
+
+  const toggleExpand = (index: number) => {
+    setExpandedJobs((prev) =>
+      prev.includes(index)
+        ? prev.filter((i) => i !== index)
+        : [...prev, index]
+    );
+  };
+
   return (
     <section id="experience" className="py-20 sm:py-32">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -112,25 +123,43 @@ export default function Experience() {
 
                   {/* Bullet Points */}
                   <ul className="space-y-3">
-                    {job.bullets.slice(0, 5).map((bullet, bulletIndex) => (
-                      <li
-                        key={bulletIndex}
-                        className="flex items-start gap-3 text-text-primary/90"
-                      >
-                        <span className="text-accent-green mt-1.5 flex-shrink-0">
-                          ▹
-                        </span>
-                        <span className="text-sm sm:text-base leading-relaxed">
-                          {highlightMetrics(bullet.text, bullet.metrics || [])}
-                        </span>
-                      </li>
-                    ))}
+                    {job.bullets
+                      .slice(0, expandedJobs.includes(index) ? undefined : 5)
+                      .map((bullet, bulletIndex) => (
+                        <motion.li
+                          key={bulletIndex}
+                          initial={bulletIndex >= 5 ? { opacity: 0, y: -10 } : false}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.2, delay: bulletIndex >= 5 ? (bulletIndex - 5) * 0.05 : 0 }}
+                          className="flex items-start gap-3 text-text-primary/90"
+                        >
+                          <span className="text-accent-green mt-1.5 flex-shrink-0">
+                            ▹
+                          </span>
+                          <span className="text-sm sm:text-base leading-relaxed">
+                            {highlightMetrics(bullet.text, bullet.metrics || [])}
+                          </span>
+                        </motion.li>
+                      ))}
                   </ul>
 
                   {job.bullets.length > 5 && (
-                    <p className="text-text-muted text-sm mt-4 ml-6">
-                      + {job.bullets.length - 5} more achievements...
-                    </p>
+                    <button
+                      onClick={() => toggleExpand(index)}
+                      className="flex items-center gap-2 text-accent-blue text-sm mt-4 ml-6 hover:text-accent-green transition-colors group"
+                    >
+                      {expandedJobs.includes(index) ? (
+                        <>
+                          <ChevronUp size={16} className="group-hover:-translate-y-0.5 transition-transform" />
+                          Show less
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown size={16} className="group-hover:translate-y-0.5 transition-transform" />
+                          + {job.bullets.length - 5} more achievements
+                        </>
+                      )}
+                    </button>
                   )}
                 </div>
               </motion.div>
