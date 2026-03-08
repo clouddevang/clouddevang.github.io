@@ -48,7 +48,7 @@ const itemVariants = {
 
 export default function Testimonials() {
   return (
-    <section id="testimonials" className="py-16 sm:py-20 bg-card/30">
+    <section id="testimonials" className="pt-6 pb-16 sm:pt-8 sm:pb-20 bg-card/30">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           variants={containerVariants}

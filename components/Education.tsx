@@ -26,7 +26,7 @@ const itemVariants = {
 
 export default function Education() {
   return (
-    <section id="education" className="py-16 sm:py-20">
+    <section id="education" className="pt-6 pb-16 sm:pt-8 sm:pb-20">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           variants={containerVariants}
