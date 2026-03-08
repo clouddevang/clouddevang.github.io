@@ -23,6 +23,15 @@ export interface BlogFrontmatter {
 
 const BLOG_DIR = path.join(process.cwd(), 'content', 'blog');
 
+function sanitizeSlugFromFilename(file: string): string {
+  // Remove the .mdx extension if present
+  const base = file.replace(/\.mdx$/i, '');
+  // Allow only URL-safe characters (alphanumeric, hyphen, underscore)
+  const sanitized = base.replace(/[^a-zA-Z0-9_-]+/g, '-');
+  // Trim leading/trailing hyphens that may have been introduced
+  return sanitized.replace(/^-+|-+$/g, '');
+}
+
 export function getAllPosts(): BlogPost[] {
   if (!fs.existsSync(BLOG_DIR)) {
     return [];
@@ -32,7 +41,7 @@ export function getAllPosts(): BlogPost[] {
   const posts = files
     .filter((file) => file.endsWith('.mdx'))
     .map((file) => {
-      const slug = file.replace(/\.mdx$/, '');
+      const slug = sanitizeSlugFromFilename(file);
       const filePath = path.join(BLOG_DIR, file);
       const fileContents = fs.readFileSync(filePath, 'utf8');
       const { data, content } = matter(fileContents);
@@ -81,7 +90,7 @@ export function getAllSlugs(): string[] {
   const files = fs.readdirSync(BLOG_DIR);
   return files
     .filter((file) => file.endsWith('.mdx'))
-    .map((file) => file.replace(/\.mdx$/, ''));
+    .map((file) => sanitizeSlugFromFilename(file));
 }
 
 export function getLatestPosts(count: number = 3): BlogPost[] {
