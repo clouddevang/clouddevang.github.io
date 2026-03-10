@@ -417,7 +417,7 @@ export const certifications: Certification[] = [
 
 export const stats: Stat[] = [
   {
-    value: '4',
+    value: '5',
     label: 'Years Experience',
     suffix: '+',
   },
