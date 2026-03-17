@@ -55,7 +55,6 @@ npm run lint
 │   ├── Projects.tsx      # Project cards with blog links
 │   ├── Education.tsx     # Education cards
 │   ├── Certifications.tsx # Cert badges (AWS/Azure/JLPT)
-│   ├── Testimonials.tsx  # Colleague testimonials
 │   ├── Blog.tsx          # Blog preview cards (clickable)
 │   ├── Contact.tsx       # Contact form + quick actions
 │   └── Footer.tsx        # Site footer
@@ -104,9 +103,6 @@ Also add to `components/Blog.tsx` blogPosts array for homepage preview.
 
 ### Updating Resume Data
 Edit `data/resume.ts` - all sections pull from this file.
-
-### Updating Testimonials
-Edit `components/Testimonials.tsx` - update the testimonials array.
 
 ## Deployment
 

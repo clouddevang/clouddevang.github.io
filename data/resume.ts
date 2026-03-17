@@ -226,30 +226,22 @@ export const experience: Experience[] = [
 
 export const projects: Project[] = [
   {
-    title: 'Zero-Trust Platform Redesign',
-    description: 'Architected backend infrastructure for a customer-facing platform redesign with RBAC-enforced Key Vault access, private Service Endpoints, and zero-trust service-to-service authentication across Azure App Services, Container Apps, and Functions.',
-    technologies: ['Azure', 'VNet', 'RBAC', 'Key Vault', 'ACA', 'Service Endpoints'],
-    link: '/blog/zero-trust-azure',
-    metrics: 'Eliminated all public database exposure',
+    title: 'Food Order App',
+    description: 'A web-based food ordering application with user interface for browsing menus, adding items to cart, and placing orders. Built with modern JavaScript practices.',
+    technologies: ['JavaScript', 'HTML', 'CSS', 'Web Development'],
+    github: 'https://github.com/clouddevang/food-order-app',
   },
   {
-    title: 'Cloud Cost Optimization',
-    description: 'Managed full AKS cluster lifecycle with VM SKU migrations, node pool consolidation, and Azure SQL tier optimization. Implemented data archival pipelines and right-sized compute resources across production environments.',
-    technologies: ['AKS', 'Kubernetes', 'Terraform', 'Azure SQL', 'Azure Functions'],
-    metrics: 'Saved $17,760/yr in infrastructure costs',
+    title: 'Socket Programming',
+    description: 'Implementation of network socket programming concepts in Python, demonstrating client-server communication, TCP/UDP protocols, and concurrent connection handling.',
+    technologies: ['Python', 'Networking', 'TCP/IP', 'Sockets'],
+    github: 'https://github.com/clouddevang/socket-programming',
   },
   {
-    title: 'Unified Observability Stack',
-    description: 'Designed and implemented OpenTelemetry-based observability with distributed traces, metrics, and structured logs. Deployed Datadog dashboards, Sentry error tracking, and Azure Monitor alerts for comprehensive system visibility.',
-    technologies: ['OpenTelemetry', 'Datadog', 'Sentry', 'Azure Monitor', 'Prometheus'],
-    link: '/blog/opentelemetry-in-practice',
-    metrics: 'Cut incident detection time by 50%',
-  },
-  {
-    title: 'Slack–Jira DevOps Automation',
-    description: 'Developed Slack Bolt slash commands integrated with Jira API for ticket queries, subtask creation, and release approval workflows. Reduced context-switching and streamlined sprint ceremonies.',
-    technologies: ['Slack Bolt', 'Jira API', 'Python', 'Node.js', 'Automation'],
-    metrics: 'Saved 5–7 hours per sprint, cut approval time by 40%',
+    title: 'Ball-Catching RRRR Manipulator',
+    description: 'Developed a robotic manipulator system that catches balls thrown in a straight trajectory within its workspace. Implemented trajectory prediction and inverse kinematics algorithms for real-time motion planning.',
+    technologies: ['MATLAB', 'Robotics', 'Control Systems', 'Kinematics'],
+    github: 'https://github.com/clouddevang/Ball-Catching-Problem-of-RRRR-manipulator',
   },
 ];
 

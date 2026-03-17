@@ -4,13 +4,12 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { projects } from '@/data/resume';
-import { BookOpen, Github, Shield, DollarSign, Activity, MessageSquare } from 'lucide-react';
+import { BookOpen, Github, Network, Utensils, Bot, Activity } from 'lucide-react';
 
 const iconMap: Record<string, React.ReactNode> = {
-  'Zero-Trust Platform Redesign': <Shield className="w-8 h-8" />,
-  'Cloud Cost Optimization': <DollarSign className="w-8 h-8" />,
-  'Unified Observability Stack': <Activity className="w-8 h-8" />,
-  'Slack–Jira DevOps Automation': <MessageSquare className="w-8 h-8" />,
+  'Socket Programming': <Network className="w-8 h-8" />,
+  'Food Order App': <Utensils className="w-8 h-8" />,
+  'Ball-Catching RRRR Manipulator': <Bot className="w-8 h-8" />,
 };
 
 const containerVariants = {
