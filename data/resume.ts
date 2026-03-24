@@ -186,7 +186,7 @@ export const experience: Experience[] = [
   },
   {
     company: 'Accenture Japan',
-    role: 'Frontend Engineer',
+    role: 'Full Stack Engineer',
     startDate: 'Jan 2021',
     endDate: 'Dec 2023',
     location: 'Japan',
@@ -203,15 +203,6 @@ export const experience: Experience[] = [
         text: 'Deployed and operated resilient frontend microservices on AWS ECS with automated CI/CD pipelines and service-level auto-scaling policies, maintaining zero downtime across all production releases.',
         metrics: [],
       },
-    ],
-  },
-  {
-    company: 'Accenture Japan',
-    role: 'Backend Engineer',
-    startDate: 'Jan 2021',
-    endDate: 'May 2022',
-    location: 'Japan',
-    bullets: [
       {
         text: 'Built a .NET-based COBOL-to-Java automated migration tool; analyzed conversion gaps and implemented all missing logic to ensure complete output fidelity across migration runs.',
         metrics: [],
