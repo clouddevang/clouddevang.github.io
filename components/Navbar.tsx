@@ -57,12 +57,10 @@ export default function Navbar() {
       if (isHomePage) {
         const element = document.getElementById(href.slice(1));
         if (element) {
-          // offsetTop is the static DOM offset — not affected by in-progress
-          // animations or layout shifts, unlike getBoundingClientRect()
-          window.scrollTo({
-            top: element.offsetTop - 64,
-            behavior: 'smooth',
-          });
+          // scrollIntoView is browser-native and respects scroll-margin-top
+          // set in globals.css — avoids manual position math that drifts
+          // when framer-motion animations fire during scroll.
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       } else {
         router.push('/' + href);
