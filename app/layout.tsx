@@ -19,6 +19,18 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 });
 
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains-mono',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://clouddevang.github.io'),
   title: 'Devang Goyal | SRE · DevOps · Cloud Engineer',

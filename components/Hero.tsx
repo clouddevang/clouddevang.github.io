@@ -52,8 +52,8 @@ export default function Hero() {
       <div className="absolute inset-0 grid-pattern opacity-50" />
 
       {/* Gradient Orbs — hidden on mobile, GPU-intensive */}
-      <div className="hidden md:block absolute top-1/4 left-1/4 w-96 h-96 bg-accent-blue/20 rounded-full blur-[128px] animate-float" />
-      <div className="hidden md:block absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent-green/15 rounded-full blur-[128px] animate-float-delayed" />
+      <div className="hidden md:block absolute top-1/4 left-1/4 w-96 h-96 bg-accent-blue/20 rounded-full blur-[128px] animate-pulse-slow" />
+      <div className="hidden md:block absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent-green/15 rounded-full blur-[128px] animate-pulse-slow" />
 
       {/* Content */}
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
