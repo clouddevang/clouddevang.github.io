@@ -54,6 +54,7 @@ export interface Skill {
 export interface SkillGroup {
   category: string;
   icon: string;
+  description: string;
   skills: Skill[];
 }
 
@@ -63,6 +64,7 @@ export interface Certification {
   issuer: string;
   year: string;
   type: 'aws' | 'azure' | 'jlpt';
+  description: string;
 }
 
 export interface Stat {
@@ -270,6 +272,7 @@ export const skills: SkillGroup[] = [
   {
     category: 'AWS',
     icon: 'aws',
+    description: 'Amazon Web Services infrastructure used across multiple production environments. Architected VPCs with NAT Gateways, IAM least-privilege policies, and KMS encryption for data at rest. Deployed containerised microservices on ECS/ECR with CodePipeline for zero-downtime releases. Enforced security best practices — blocked public S3 access, centralised secrets via Secrets Manager, and set up CloudWatch alarms with auto-scaling for high availability.',
     skills: [
       { name: 'EC2' },
       { name: 'ECS' },
@@ -286,6 +289,7 @@ export const skills: SkillGroup[] = [
   {
     category: 'Azure',
     icon: 'azure',
+    description: 'Primary cloud platform at BitFlyer — responsible for full AKS cluster lifecycle, Azure Container Apps rollout, and a zero-trust VNet security redesign. Integrated Key Vault with RBAC-enforced service identities, migrated all database connectivity to private Service Endpoints, and introduced Privileged Identity Management (PIM) to eliminate standing admin privileges. Also built Azure Functions–driven data archival pipelines saving $4,800/yr in sustained costs.',
     skills: [
       { name: 'AKS' },
       { name: 'ACA' },
@@ -302,6 +306,7 @@ export const skills: SkillGroup[] = [
   {
     category: 'Infrastructure as Code',
     icon: 'iac',
+    description: 'Terraform is the primary IaC tool used to codify entire cloud environments — VPCs, IAM roles, AKS clusters, Azure AD identities, and Service Principal governance. Implemented multi-environment Terraform Cloud workflows integrated with Azure DevOps VCS pipelines, reducing configuration drift and increasing deployment frequency by 27%. Full AWS environment stacks provisioned in under 10 minutes. CloudFormation used for legacy AWS setups.',
     skills: [
       { name: 'Terraform' },
       { name: 'CloudFormation' },
@@ -311,6 +316,7 @@ export const skills: SkillGroup[] = [
   {
     category: 'DevOps & CI/CD',
     icon: 'devops',
+    description: 'Day-to-day container orchestration and release automation — managing AKS cluster upgrades, node pool consolidations, and workload identity. Helm for application packaging and KEDA for event-driven autoscaling on Azure Container Apps. Migrated 3 production AKS clusters from community ingress-nginx to F5 NGINX Ingress Controller with zero downtime. Linkerd for service mesh, GitHub Actions for CI/CD pipelines across all personal and client projects.',
     skills: [
       { name: 'Kubernetes' },
       { name: 'Helm' },
@@ -325,6 +331,7 @@ export const skills: SkillGroup[] = [
   {
     category: 'Observability',
     icon: 'observability',
+    description: 'End-to-end observability across distributed systems — deployed OpenTelemetry SDK instrumentation for distributed traces, metrics, and structured logs routing to Datadog. Integrated Sentry for error tracking and PagerDuty for on-call alerting. At BitFlyer, this unified observability stack cut incident detection time by 50% and drove sustained MTTR improvements. Azure Monitor and CloudWatch used for cloud-native alerting and auto-scaling triggers.',
     skills: [
       { name: 'OpenTelemetry' },
       { name: 'Datadog' },
@@ -338,6 +345,7 @@ export const skills: SkillGroup[] = [
   {
     category: 'Languages',
     icon: 'languages',
+    description: 'Python for infrastructure automation scripts, CLI tooling, and socket-level networking. C# for .NET microservices and Azure Functions on the BitFlyer platform. TypeScript and JavaScript for full-stack web development. Bash for shell automation and CI/CD pipeline scripting. Java and Spring Boot for backend microservices and COBOL-to-Java migration tooling. SQL for database query optimisation and schema migrations. C/C++ from IIT Kanpur engineering coursework.',
     skills: [
       { name: 'Python' },
       { name: 'C#' },
@@ -352,6 +360,7 @@ export const skills: SkillGroup[] = [
   {
     category: 'Frontend / Backend',
     icon: 'fullstack',
+    description: 'Full-stack development experience spanning large-scale Vue.js SPAs to .NET and Spring Boot microservices. Led frontend development of an e-commerce platform handling 300M+ monthly visits using Vue.js with Pinia state management. Built reusable Single File Components and deployed containerised services on AWS ECS. Also developed COBOL-to-Java migration tooling in .NET and built this portfolio with React, Next.js, and Tailwind CSS.',
     skills: [
       { name: 'Node.js' },
       { name: '.NET' },
@@ -371,6 +380,7 @@ export const certifications: Certification[] = [
     issuer: 'Amazon Web Services',
     year: 'Oct 2024',
     type: 'aws',
+    description: 'Professional-level certification validating expertise in provisioning, operating, and managing distributed application systems on AWS. Covers CI/CD pipeline design, infrastructure as code with CloudFormation and Terraform, monitoring and logging strategies, security controls, and high-availability architecture. Directly applied in automating deployments with CodePipeline/CodeBuild and enforcing AWS security best practices across production environments.',
   },
   {
     slug: 'aws-solutions-architect',
@@ -378,6 +388,7 @@ export const certifications: Certification[] = [
     issuer: 'Amazon Web Services',
     year: '2024',
     type: 'aws',
+    description: 'Validates ability to design resilient, cost-optimised, and high-performing cloud architectures on AWS. Covers VPC design, compute (EC2/ECS/Lambda), storage (S3/EBS/EFS), managed databases, and security best practices including IAM and KMS. Applied directly when architecting multi-tier VPC environments, setting up ELB and auto-scaling groups, and establishing site-to-site VPN between AWS and Azure for cross-cloud AI workloads.',
   },
   {
     slug: 'aws-developer',
@@ -385,6 +396,7 @@ export const certifications: Certification[] = [
     issuer: 'Amazon Web Services',
     year: '2024',
     type: 'aws',
+    description: 'Validates proficiency in developing, deploying, and debugging cloud-based applications on AWS. Covers core services like Lambda, DynamoDB, API Gateway, SQS/SNS, and Elastic Beanstalk, as well as deployment automation with CodeDeploy and CodePipeline. Informed the design of containerised microservice deployments on ECS and secure credential management via Secrets Manager across all production environments.',
   },
   {
     slug: 'aws-sysops',
@@ -392,6 +404,7 @@ export const certifications: Certification[] = [
     issuer: 'Amazon Web Services',
     year: '2024',
     type: 'aws',
+    description: 'Validates operational skills for deploying, managing, and operating workloads on AWS. Focuses on monitoring (CloudWatch), networking (VPC, Route 53), storage management, security patching, and cost optimisation. Directly relevant to setting up centralised CloudWatch alarms with automated auto-scaling, maintaining high availability during traffic spikes, and enforcing IAM least-privilege policies across production AWS accounts.',
   },
   {
     slug: 'aws-cloud-practitioner',
@@ -399,6 +412,7 @@ export const certifications: Certification[] = [
     issuer: 'Amazon Web Services',
     year: '2023',
     type: 'aws',
+    description: 'Foundational AWS certification establishing cloud literacy across core services, billing and pricing models, security concepts, and the AWS shared responsibility model. Served as the entry point into the AWS certification path, building the conceptual foundation for all subsequent associate and professional-level credentials.',
   },
   {
     slug: 'azure-fundamentals',
@@ -406,6 +420,7 @@ export const certifications: Certification[] = [
     issuer: 'Microsoft',
     year: '2024',
     type: 'azure',
+    description: 'Microsoft Azure foundational certification covering core cloud concepts, Azure compute, networking, storage, and database services, plus security, compliance, and pricing models. Validated the theoretical grounding behind hands-on Azure work — AKS management, VNet integration, Private Endpoints, Key Vault RBAC, and Azure Monitor — carried out daily at BitFlyer.',
   },
   {
     slug: 'jlpt-n3',
@@ -413,6 +428,7 @@ export const certifications: Certification[] = [
     issuer: 'Japan Foundation',
     year: '2024',
     type: 'jlpt',
+    description: 'Intermediate Japanese language proficiency certification administered by the Japan Foundation. N3 level demonstrates ability to understand Japanese used in everyday situations to a certain degree — reading documents, participating in team meetings, and collaborating with Japanese colleagues without a language barrier. Essential for working effectively in a Japanese engineering environment at both BitFlyer and Accenture Japan.',
   },
 ];
 
