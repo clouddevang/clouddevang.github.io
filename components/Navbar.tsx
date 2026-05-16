@@ -46,18 +46,28 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  // On homepage load, check if we navigated here from a blog page
-  // targeting a specific section
+  // After navigating back to '/', poll until the target section element
+  // is in the DOM, then scroll to it.
   useEffect(() => {
     if (pathname !== '/') return;
     const target = sessionStorage.getItem('scrollTarget');
     if (!target) return;
     sessionStorage.removeItem('scrollTarget');
-    // Wait for page to fully render before scrolling
-    const timer = setTimeout(() => {
+
+    let attempts = 0;
+    let timer: ReturnType<typeof setTimeout>;
+
+    const tryScroll = () => {
       const el = document.getElementById(target);
-      if (el) scrollToSection(el);
-    }, 100);
+      if (el) {
+        scrollToSection(el);
+      } else if (attempts < 15) {
+        attempts++;
+        timer = setTimeout(tryScroll, 100);
+      }
+    };
+
+    timer = setTimeout(tryScroll, 100);
     return () => clearTimeout(timer);
   }, [pathname]);
 
@@ -96,9 +106,9 @@ export default function Navbar() {
           scrollToSection(element);
         }
       } else {
-        // Store target section, navigate to home, then scroll after load
+        // Store target, client-side navigate to home, then scroll once mounted
         sessionStorage.setItem('scrollTarget', href.slice(1));
-        window.location.href = '/';
+        router.push('/');
       }
     }
   };
