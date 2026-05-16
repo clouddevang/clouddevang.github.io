@@ -9,6 +9,15 @@ import { Calendar, Clock, ArrowRight } from 'lucide-react';
 // Static blog data for homepage preview
 const blogPosts = [
   {
+    slug: 'nginx-to-f5-ingress-migration',
+    title: 'Migrating from Community ingress-nginx to F5 NGINX Ingress Controller Across 3 AKS Clusters',
+    date: '2026-05-16',
+    summary:
+      'A production war story covering the IngressClass immutability trap, WebSocket keepalive surprises, rate limiting rewrites, and zero-downtime service patching across three AKS clusters.',
+    tags: ['Kubernetes', 'NGINX', 'AKS', 'SRE'],
+    readTime: '14 min read',
+  },
+  {
     slug: 'slos-slis-error-budgets',
     title: 'SLOs, SLIs, and Error Budgets: A Practical Guide for SREs',
     date: '2025-01-20',
@@ -25,15 +34,6 @@ const blogPosts = [
       'How we redesigned our entire backend infrastructure with VNet integration, private endpoints, and RBAC-enforced Key Vault access to achieve true zero-trust architecture.',
     tags: ['Azure', 'Security', 'SRE'],
     readTime: '8 min read',
-  },
-  {
-    slug: 'keda-vs-azure-functions',
-    title: 'KEDA vs Azure Functions: Choosing the Right Autoscaler',
-    date: '2024-11-28',
-    summary:
-      'A deep dive into when to use Azure Container Apps with KEDA versus Azure Functions for event-driven scaling, based on real performance benchmarks.',
-    tags: ['Kubernetes', 'Azure', 'DevOps'],
-    readTime: '6 min read',
   },
 ];
 

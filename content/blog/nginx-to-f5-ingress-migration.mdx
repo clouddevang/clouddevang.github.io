@@ -1,0 +1,400 @@
+---
+title: "Migrating from Community ingress-nginx to F5 NGINX Ingress Controller Across 3 AKS Clusters"
+date: "2026-05-16"
+summary: "A production war story covering the complete migration from community ingress-nginx to F5 NGINX IC v2.5.1 across three AKS clusters — including the IngressClass immutability trap, WebSocket keepalive surprises, rate limiting rewrites, and zero-downtime service patching."
+tags: ["Kubernetes", "NGINX", "AKS", "DevOps", "SRE"]
+readTime: "14 min read"
+---
+
+Earlier this month I migrated three production AKS clusters off the community `ingress-nginx` controller and onto the F5 NGINX Ingress Controller OSS (v2.5.1). The apps were a compliance API platform (TravelRule), a real-time WebSocket trading server (LightStream), and a charting frontend (LightChart). Same controller name, completely different internals — and enough sharp edges to fill a post.
+
+This is the full account: what changed, what broke, and the patterns I standardised across all three.
+
+---
+
+## Why Migrate
+
+The community Helm chart (`kubernetes/ingress-nginx`) and the F5 chart (`nginx-stable/nginx-ingress`) both proxy traffic through NGINX, but they diverge at almost every other layer — Helm structure, annotation prefixes, config key names, metrics port, and label selectors. F5 NGINX IC is the upstream-maintained version aligned with NGINX OSS releases and gives tighter control over the NGINX config without relying on the community's annotation translation layer.
+
+The practical trigger was a mix of factors: the community chart had accumulated workarounds for bugs we no longer needed, the annotation surface was getting hard to audit, and we wanted a single, consistent ingress stack across clusters.
+
+---
+
+## What Stayed the Same
+
+Before diving into the diffs, here is what did **not** change:
+
+- IngressClass name remains `nginx` in every cluster (no application-level changes needed)
+- Azure Load Balancer type (internal where it was internal, public where public)
+- cert-manager ClusterIssuers (one field rename, covered below)
+- Linkerd injection on controller pods
+
+---
+
+## The Migration Playbook
+
+Every cluster followed the same five-step pipeline:
+
+```bash
+# 1. Pull the F5 chart via OCI — no helm repo add needed
+helm pull oci://ghcr.io/nginx/charts/nginx-ingress \
+  --version 2.5.1 \
+  --destination /tmp/charts/
+
+# 2. Verify checksum before touching anything
+echo "23c866c0531719586570435a4d9a57ac0fb9661fdafd572c8916208cb7b4f225  /tmp/charts/nginx-ingress-2.5.1.tgz" \
+  | sha256sum --check
+
+# 3. One-time IngressClass migration guard
+CONTROLLER=$(kubectl get ingressclass nginx \
+  -o jsonpath='{.spec.controller}' 2>/dev/null || true)
+
+if [ "${CONTROLLER}" = "k8s.io/ingress-nginx" ]; then
+  echo "Removing community IngressClass — allowing F5 takeover"
+  kubectl delete ingressclass nginx
+fi
+
+# 4. Helm upgrade
+helm upgrade --install nginx-ingress /tmp/charts/nginx-ingress-2.5.1.tgz \
+  --namespace nginx-ingress \
+  -f values.yaml \
+  --wait --timeout 5m
+
+# 5. Verify the right controller is running
+kubectl get pods -l app.kubernetes.io/name=nginx-ingress -n nginx-ingress
+```
+
+Step 3 deserves its own section.
+
+---
+
+## The IngressClass Immutability Trap
+
+`spec.controller` on an IngressClass resource is **immutable** after creation. The community controller sets it to `k8s.io/ingress-nginx`; the F5 controller expects `nginx.org/ingress-controller`. If you just run `helm upgrade`, F5 will fail to adopt the existing IngressClass and create a conflicting one — or worse, silently ignore it and not process any Ingress resources.
+
+The solution is to delete the IngressClass before the first F5 install. But a naive unconditional delete is dangerous in an idempotent pipeline (if someone reruns the pipeline after migration, they'd delete the already-correct F5-owned IngressClass mid-flight, causing a brief outage).
+
+The guard condition solves this:
+
+```bash
+if [ "${CONTROLLER}" = "k8s.io/ingress-nginx" ]; then
+  kubectl delete ingressclass nginx
+fi
+```
+
+After the first successful F5 install, `spec.controller` reads `nginx.org/ingress-controller`, so every subsequent pipeline run skips the delete. One-time, idempotent, safe.
+
+---
+
+## Helm Values: Structural Differences
+
+The community chart uses a flat `controller.config` map. F5 nests everything under `controller.config.entries`. Small diff, big gotcha if you copy-paste.
+
+**Community:**
+```yaml
+controller:
+  config:
+    proxy-read-timeout: "600"
+    load-balance: "ewma"
+    use-gzip: "true"
+```
+
+**F5:**
+```yaml
+controller:
+  config:
+    entries:
+      proxy-read-timeout: "600s"   # note: F5 expects the unit suffix
+      lb-method: "ewma"            # key renamed
+      # use-gzip has no equivalent — moved to http-snippets
+```
+
+A number of community config keys simply do not exist in F5 and are silently ignored if you leave them in. I audited every key against the [F5 config documentation](https://docs.nginx.com/nginx-ingress-controller/) and removed: `allow-snippet-annotations`, `allow-backend-server-header`, `block-user-agents`, `enable-vts-status`, `generate-request-id`, `limit-req-status-code`, `use-forwarded-headers`, `use-geoip`, `upstream-keepalive-*`.
+
+Other keys that F5 **does** support but with different names:
+
+| Community key | F5 equivalent |
+|---|---|
+| `load-balance` | `lb-method` |
+| `proxy-read-timeout` | `proxy-read-timeout` + unit suffix |
+| `client-header-timeout` | Move to `http-snippets` |
+
+The full values for the base controller config across all three clusters ended up looking like this:
+
+```yaml
+controller:
+  kind: deployment
+  enableCustomResources: false      # not using VirtualServer CRDs
+  enableSnippets: true
+  telemetryReporting:
+    enable: false                   # no outbound access to oss.edge.df.f5.com
+
+  ingressClass:
+    name: nginx
+    create: true
+    setAsDefaultIngress: false
+
+  service:
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-health-probe-protocol: tcp
+
+  metrics:
+    enable: true
+    port: 9113                      # changed from community's default
+    serviceMonitor:
+      create: false
+```
+
+Two settings that tripped things up before I caught them:
+
+**`telemetryReporting.enable: false`** — F5 attempts to phone home to `oss.edge.df.f5.com`. In a cluster with no outbound internet on the node pool, this causes the controller pod to enter a crash-loop on startup waiting for the connection to timeout. Must be disabled.
+
+**`enableCustomResources: false`** — F5 ships its own CRDs (VirtualServer, TransportServer, Policy). If you leave this enabled and those CRDs aren't pre-installed, the controller crashes. Since all three clusters use standard Kubernetes Ingress resources, I disabled them entirely.
+
+**Azure LB health probe** — The community controller serves `/healthz` on port 80. F5 does not. Azure's default HTTP probe on that path will mark all backends unhealthy. Switch to TCP probe.
+
+---
+
+## Rate Limiting: From Annotations to NGINX Snippets
+
+Community ingress-nginx ships first-class annotations for rate limiting:
+
+```yaml
+# community annotations (application ingress manifests)
+nginx.ingress.kubernetes.io/limit-req-rate: "120r/m"
+nginx.ingress.kubernetes.io/limit-conn: "60"
+nginx.ingress.kubernetes.io/limit-req-status: "429"
+```
+
+F5 NGINX IC does not have equivalent annotation primitives. The correct F5 approach is to declare the rate limit zones globally in `http-snippets` (controller values) and apply them per-ingress via `server-snippets`.
+
+**Controller values — shared zones:**
+```yaml
+controller:
+  config:
+    entries:
+      http-snippets: |
+        geo $lightchart_limit_bypass {
+          default 0;
+          150.249.232.224/28 1;  # office ranges bypass rate limits
+          203.114.50.208/28  1;
+        }
+
+        map $lightchart_limit_bypass $lightchart_limit_key {
+          0 $binary_remote_addr;
+          1 "";
+        }
+
+        limit_req_zone  $lightchart_limit_key zone=lightchart_rpm:10m rate=120r/m;
+        limit_conn_zone $lightchart_limit_key zone=lightchart_conn:10m;
+```
+
+**Ingress manifest — apply per route:**
+```yaml
+annotations:
+  nginx.org/server-snippets: |
+    limit_req zone=lightchart_rpm burst=80 nodelay;
+    limit_req_status 429;
+    limit_conn lightchart_conn 60;
+    limit_conn_status 429;
+```
+
+The geo+map pattern lets specific IP ranges (office networks, CI runners, load testing IPs) bypass rate limits by mapping to an empty key — which `limit_req_zone` treats as unlimited. This is cleaner than maintaining allow-lists in multiple places.
+
+---
+
+## LightStream: WebSocket Keepalive Surprises
+
+LightStream is a Socket.io server behind WebSocket connections. Everything looked healthy post-migration — pods up, ingress adopted — but Socket.io clients started disconnecting every 30–60 seconds.
+
+The root cause: F5's default `keepalive-timeout` is `0s` (disabled), whereas the community chart defaults to `60s`. WebSocket connections through NGINX depend on the underlying TCP keepalive to stay alive during idle periods. With keepalive disabled, NGINX was closing the connection on the server side.
+
+Fix:
+
+```yaml
+controller:
+  config:
+    entries:
+      keepalive-timeout: "60s"
+      http2: "false"   # HTTP/2 and WebSocket upgrades conflict; disable explicitly
+```
+
+Also added the F5 WebSocket annotation to the ingress manifest:
+
+```yaml
+annotations:
+  nginx.org/websocket-services: "lightstream-io,lightstream-ws"
+```
+
+Without this annotation, F5 does not set the necessary `Upgrade` and `Connection` proxy headers for WebSocket handshakes.
+
+---
+
+## LightStream: Zero-Downtime Service Selector Patch
+
+LightStream runs a secondary service `horizon-b-ingress-nginx-controller` that routes specific traffic. Its label selector was hardcoded to the community labels:
+
+```
+app.kubernetes.io/name=ingress-nginx
+app.kubernetes.io/component=controller
+```
+
+F5 uses `app.kubernetes.io/name=nginx-ingress`. After migration the service selector matched nothing — endpoints went empty, traffic dropped.
+
+I couldn't just `kubectl apply` a new selector because Kubernetes rejects selector changes on existing Services. Instead, I patched it as part of the pipeline pre-upgrade step:
+
+```bash
+kubectl patch service horizon-b-ingress-nginx-controller \
+  -n nginx-ingress \
+  --type='merge' \
+  -p '{
+    "spec": {
+      "selector": {
+        "app.kubernetes.io/name": "nginx-ingress"
+      }
+    }
+  }'
+```
+
+The `--type='merge'` patch strategy replaces only the keys specified, leaving the rest of the selector intact. This ran before `helm upgrade` so the service selector matched the new pods the moment they came up.
+
+---
+
+## TravelRule: cert-manager and Datadog
+
+### cert-manager
+
+One field rename in the ClusterIssuer template — `class` is deprecated in favour of `ingressClassName`:
+
+```yaml
+# before
+solvers:
+  - http01:
+      ingress:
+        class: nginx
+
+# after
+solvers:
+  - http01:
+      ingress:
+        ingressClassName: nginx
+```
+
+Also removed a cert-manager feature gate that was only needed to work around a community ingress-nginx bug (issue #11176) related to path type handling. F5 doesn't have the bug:
+
+```yaml
+# removed from cert-manager values
+featureGates: "ACMEHTTP01IngressPathTypeExact=false"
+```
+
+### Datadog Metrics
+
+F5 exposes Prometheus metrics on port `9113` (community used `8080`). The existing Datadog auto-discovery configuration was pointing at the wrong port and namespace. I added an OpenMetrics check:
+
+```yaml
+# datadog-agent values.yaml
+confd:
+  openmetrics.yaml: |-
+    ad_identifiers:
+      - nginx-ingress
+    init_config:
+    instances:
+      - openmetrics_endpoint: "http://%%host%%:9113/metrics"
+        namespace: nginx_ingress
+        metrics:
+          - nginx_connections_accepted
+          - nginx_connections_active
+          - nginx_connections_handled
+          - nginx_http_requests_total
+          - nginx_ingress_controller_ingress_resources_total
+          - nginx_ingress_controller_nginx_reloads_total
+          - nginx_ingress_controller_nginx_reload_errors_total
+          - nginx_ingress_controller_nginx_last_reload_milliseconds
+```
+
+Two things to watch: the file must be named `openmetrics.yaml` (not `nginx-ingress.yaml`) for Datadog's catalog to recognise it, and `ad_identifiers` must match the container name `nginx-ingress` exactly.
+
+---
+
+## Node Selector Key Update
+
+The community chart uses the deprecated node label key:
+
+```
+beta.kubernetes.io/os=linux
+```
+
+F5 values use the stable GA key:
+
+```
+kubernetes.io/os=linux
+```
+
+If your node pool doesn't carry the `beta.kubernetes.io/os` label (newer AKS node images dropped it), the community controller pods won't schedule at all. This isn't migration-specific but it's a good cleanup to land at the same time.
+
+---
+
+## Helm Upgrade Stability
+
+On cold nodes (newly scaled-up node pool), the F5 controller image pull can take longer than Helm's default 3m timeout. `--wait --timeout 5m` avoids spurious pipeline failures that previously looked like deployment regressions but were actually just slow image pulls:
+
+```bash
+helm upgrade --install nginx-ingress ./nginx-ingress-2.5.1.tgz \
+  --namespace nginx-ingress \
+  -f values.yaml \
+  --wait --timeout 5m
+```
+
+---
+
+## Rollout Issues Timeline
+
+Here is the honest account of what broke and when:
+
+| Time | Cluster | Issue | Fix |
+|------|---------|-------|-----|
+| T+0 | TravelRule | F5 crash-loops on startup | `telemetryReporting.enable: false` + `enableCustomResources: false` |
+| T+0 | TravelRule | Linkerd not injecting pods | Fixed annotation path: `podAnnotations` → `controller.pod.annotations` |
+| T+0 | TravelRule | Datadog scraping wrong port | Added OpenMetrics check on port 9113 |
+| T+0 | TravelRule | Datadog system-probe seccomp failures | `systemProbe.enabled: false`, `discovery.enabled: false` |
+| T+1h | LightStream | All LB backends unhealthy | Switched Azure LB probe from HTTP `/healthz` to TCP |
+| T+2h | LightStream | Socket.io disconnections | `keepalive-timeout: 60s`, `nginx.org/websocket-services` annotation |
+| T+3h | LightStream | `horizon-b` service endpoints empty | Pre-upgrade service selector patch |
+| T+24h | LightStream | Helm timeout on cold nodes | `--wait --timeout 5m` |
+| T+10d | TravelRule | IngressClass delete too aggressive | Made delete conditional on `spec.controller` value |
+
+The conditional IngressClass delete came last because the initial unconditional delete worked fine on the first run — the risk only became apparent when thinking about pipeline reruns.
+
+---
+
+## Key Differences Cheat Sheet
+
+| Area | Community ingress-nginx | F5 NGINX IC |
+|------|------------------------|-------------|
+| Helm repo | `kubernetes.github.io/ingress-nginx` | OCI: `ghcr.io/nginx/charts/nginx-ingress` |
+| Chart name | `ingress-nginx` | `nginx-ingress` |
+| Config structure | `controller.config` flat map | `controller.config.entries` |
+| Rate limiting | Annotations (`nginx.ingress.kubernetes.io/*`) | `http-snippets` + `server-snippets` |
+| WebSocket | Automatic via annotation | `nginx.org/websocket-services` required |
+| Metrics port | 8080 | 9113 |
+| Pod labels | `app.kubernetes.io/name=ingress-nginx` | `app.kubernetes.io/name=nginx-ingress` |
+| IngressClass controller | `k8s.io/ingress-nginx` | `nginx.org/ingress-controller` |
+| Linkerd annotation path | `podAnnotations` | `controller.pod.annotations` |
+| Node selector key | `beta.kubernetes.io/os` | `kubernetes.io/os` |
+| Telemetry | Off by default | **Must disable explicitly** |
+| Custom resources | Not applicable | **Must disable if not using** |
+| LB health probe | HTTP `/healthz` | TCP only |
+
+---
+
+## What I Would Do Differently
+
+**Audit every config key before migrating.** I spent more time than necessary discovering that F5 silently ignores unknown config keys. A pre-migration diff against the F5 config reference would have caught the `upstream-keepalive-*` and `use-gzip` removals before they hit production.
+
+**Test WebSocket apps on a staging cluster first.** The Socket.io keepalive issue was predictable — I just didn't think to check default timeout differences between the two controllers.
+
+**Add the service selector patch to the playbook from the start.** The `horizon-b` service issue in LightStream was specific to that app, but the general pattern of services with hardcoded community labels is common. It's worth grepping for `ingress-nginx` in all Service selectors before starting.
+
+---
+
+The migration is complete and stable across all three clusters. Ingress configurations are now easier to reason about — NGINX config is NGINX config, not a translation layer of annotations into `nginx.conf` directives you can't see. If you're running the community chart and considering the switch, the above should give you a realistic picture of what to budget for.
