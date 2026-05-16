@@ -2,52 +2,61 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
 
 const navLinks = [
-  { href: '#about', label: 'About' },
-  { href: '#skills', label: 'Skills' },
-  { href: '#experience', label: 'Experience' },
-  { href: '#projects', label: 'Projects' },
-  { href: '#education', label: 'Education' },
+  { href: '#about',          label: 'About'          },
+  { href: '#skills',         label: 'Skills'         },
+  { href: '#experience',     label: 'Experience'     },
+  { href: '#projects',       label: 'Projects'       },
+  { href: '#education',      label: 'Education'      },
   { href: '#certifications', label: 'Certifications' },
-  { href: '#blog', label: 'Blog' },
-  { href: '#contact', label: 'Contact' },
+  { href: '#blog',           label: 'Blog'           },
+  { href: '#contact',        label: 'Contact'        },
 ];
 
-// Custom scroll — fixed 480ms duration regardless of distance,
-// easeOutCubic so it feels snappy not slow.
+// Walk the offsetParent chain to get the element's absolute top position.
+// getBoundingClientRect() includes CSS transforms (framer-motion initial y:20
+// shifts it), so it gives the wrong scroll target. offsetTop does not.
+function getAbsoluteTop(element: HTMLElement): number {
+  let top = 0;
+  let el: HTMLElement | null = element;
+  while (el) {
+    top += el.offsetTop;
+    el = el.offsetParent as HTMLElement | null;
+  }
+  return top;
+}
+
+// Smooth scroll to section in 480ms (easeOutCubic), navbar-aware.
 function scrollToSection(element: HTMLElement) {
   const NAVBAR = 72;
-  const start = window.scrollY;
-  const target = element.getBoundingClientRect().top + window.scrollY - NAVBAR;
-  const distance = target - start;
-  const duration = 480;
-  let startTime: number | null = null;
-
-  const ease = (t: number) => 1 - Math.pow(1 - t, 3); // easeOutCubic
-
+  const target = Math.max(0, getAbsoluteTop(element) - NAVBAR);
+  const start  = window.scrollY;
+  const dist   = target - start;
+  const dur    = 480;
+  let t0: number | null = null;
+  const ease = (t: number) => 1 - Math.pow(1 - t, 3);
   function step(now: number) {
-    if (!startTime) startTime = now;
-    const t = Math.min((now - startTime) / duration, 1);
-    window.scrollTo(0, start + distance * ease(t));
+    if (!t0) t0 = now;
+    const t = Math.min((now - t0) / dur, 1);
+    window.scrollTo(0, start + dist * ease(t));
     if (t < 1) requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
 }
 
 export default function Navbar() {
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [isScrolled,       setIsScrolled]       = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('');
+  const [activeSection,    setActiveSection]    = useState('');
   const pathname = usePathname();
-  const router = useRouter();
 
-  // After navigating back to '/', poll until the target section element
-  // is in the DOM, then scroll to it.
+  // After a full-page reload to '/', read sessionStorage and scroll to target
+  // once React + framer-motion have settled (500ms is enough).
   useEffect(() => {
     if (pathname !== '/') return;
     const target = sessionStorage.getItem('scrollTarget');
@@ -61,55 +70,51 @@ export default function Navbar() {
       const el = document.getElementById(target);
       if (el) {
         scrollToSection(el);
-      } else if (attempts < 15) {
+      } else if (attempts < 10) {
         attempts++;
         timer = setTimeout(tryScroll, 100);
       }
     };
 
-    timer = setTimeout(tryScroll, 100);
+    // 500ms head-start so framer-motion initial states are applied
+    // before we calculate the scroll target.
+    timer = setTimeout(tryScroll, 500);
     return () => clearTimeout(timer);
   }, [pathname]);
 
   useEffect(() => {
-    const handleScroll = () => {
+    const onScroll = () => {
       setIsScrolled(window.scrollY > 50);
 
-      // Find active section
       const sections = navLinks
-        .filter((link) => link.href.startsWith('#'))
-        .map((link) => link.href.slice(1));
+        .filter(l => l.href.startsWith('#'))
+        .map(l => l.href.slice(1));
 
-      for (const section of sections.reverse()) {
-        const element = document.getElementById(section);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          if (rect.top <= 100) {
-            setActiveSection(section);
-            break;
-          }
+      for (const id of [...sections].reverse()) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= 100) {
+          setActiveSection(id);
+          break;
         }
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   const handleNavClick = (href: string) => {
     setIsMobileMenuOpen(false);
-    if (href.startsWith('#')) {
-      const isHomePage = pathname === '/';
-      if (isHomePage) {
-        const element = document.getElementById(href.slice(1));
-        if (element) {
-          scrollToSection(element);
-        }
-      } else {
-        // Store target, client-side navigate to home, then scroll once mounted
-        sessionStorage.setItem('scrollTarget', href.slice(1));
-        router.push('/');
-      }
+    if (!href.startsWith('#')) return;
+
+    if (pathname === '/') {
+      const el = document.getElementById(href.slice(1));
+      if (el) scrollToSection(el);
+    } else {
+      // Full-page reload to home — more reliable than router.push on
+      // a static export. Store target so the useEffect above can scroll.
+      sessionStorage.setItem('scrollTarget', href.slice(1));
+      window.location.href = '/';
     }
   };
 
@@ -128,10 +133,7 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link
-              href="/"
-              className="flex items-center gap-1 text-xl font-bold"
-            >
+            <Link href="/" className="flex items-center gap-1 text-xl font-bold">
               <span className="text-accent-blue">&lt;</span>
               <span className="text-text-primary">DG</span>
               <span className="text-accent-blue">/&gt;</span>
@@ -140,11 +142,10 @@ export default function Navbar() {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
               {navLinks.map((link) => {
-                const sectionName = link.href.slice(1);
-                const isActive = link.href.startsWith('#')
-                  ? (activeSection === sectionName && pathname === '/') ||
-                    (sectionName === 'blog' && pathname.startsWith('/blog'))
-                  : pathname.startsWith(link.href);
+                const id = link.href.slice(1);
+                const isActive =
+                  (activeSection === id && pathname === '/') ||
+                  (id === 'blog' && pathname.startsWith('/blog'));
                 return (
                   <Link
                     key={link.href}
@@ -156,9 +157,7 @@ export default function Navbar() {
                       }
                     }}
                     className={`text-sm font-medium transition-colors duration-200 relative ${
-                      isActive
-                        ? 'text-accent-blue'
-                        : 'text-text-muted hover:text-text-primary'
+                      isActive ? 'text-accent-blue' : 'text-text-muted hover:text-text-primary'
                     }`}
                   >
                     {link.label}
@@ -197,19 +196,16 @@ export default function Navbar() {
           >
             <div className="px-4 py-4 space-y-2">
               {navLinks.map((link) => {
-                const sectionName = link.href.slice(1);
-                const isActive = link.href.startsWith('#')
-                  ? (activeSection === sectionName && pathname === '/') ||
-                    (sectionName === 'blog' && pathname.startsWith('/blog'))
-                  : pathname.startsWith(link.href);
+                const id = link.href.slice(1);
+                const isActive =
+                  (activeSection === id && pathname === '/') ||
+                  (id === 'blog' && pathname.startsWith('/blog'));
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
                     onClick={(e) => {
-                      if (link.href.startsWith('#')) {
-                        e.preventDefault();
-                      }
+                      if (link.href.startsWith('#')) e.preventDefault();
                       handleNavClick(link.href);
                     }}
                     className={`block py-3 px-4 rounded-lg text-base font-medium transition-colors ${

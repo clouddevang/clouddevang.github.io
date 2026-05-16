@@ -109,14 +109,16 @@ export default function Skills() {
                 />
                 <div className="p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <motion.div
-                    animate={isActive ? { scale: 1.15, rotate: 5 } : { scale: 1, rotate: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="p-2 rounded-lg transition-colors duration-300"
-                    style={{ background: isActive && glow ? glow.iconBg : 'rgba(0,212,255,0.1)', color: categoryConfig[group.icon]?.color ?? 'var(--accent-blue)' }}
+                  <div
+                    className="p-2 rounded-lg transition-all duration-200"
+                    style={{
+                      background: isActive && glow ? glow.iconBg : 'rgba(0,212,255,0.1)',
+                      color: categoryConfig[group.icon]?.color ?? 'var(--accent-blue)',
+                      transform: isActive ? 'scale(1.15) rotate(5deg)' : 'scale(1) rotate(0deg)',
+                    }}
                   >
                     {iconMap[group.icon] || <Cloud className="w-5 h-5" />}
-                  </motion.div>
+                  </div>
                   <h3 className="text-lg font-semibold text-text-primary">
                     {group.category}
                   </h3>

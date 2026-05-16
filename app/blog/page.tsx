@@ -27,9 +27,7 @@ export default function BlogPage() {
 
         {/* Header */}
         <div className="mb-12">
-          <p className="text-accent-green font-mono text-sm mb-2 tracking-wider">
-            INSIGHTS
-          </p>
+          <p className="text-accent-green font-mono text-sm mb-2 tracking-wider">INSIGHTS</p>
           <h1 className="text-4xl sm:text-5xl font-bold mb-4">
             <span className="gradient-text">Blog</span>
           </h1>
@@ -42,9 +40,10 @@ export default function BlogPage() {
         {/* Posts List */}
         <div className="space-y-6">
           {posts.map((post) => (
-            <article
+            <Link
               key={post.slug}
-              className="bg-card border border-border rounded-2xl p-6 sm:p-8 card-hover group"
+              href={`/blog/${post.slug}`}
+              className="block bg-card border border-border rounded-2xl p-6 sm:p-8 card-hover group"
             >
               {/* Meta */}
               <div className="flex flex-wrap items-center gap-4 text-sm text-text-muted mb-4">
@@ -63,16 +62,12 @@ export default function BlogPage() {
               </div>
 
               {/* Title */}
-              <Link href={`/blog/${post.slug}`}>
-                <h2 className="text-xl sm:text-2xl font-bold text-text-primary mb-3 group-hover:text-accent-blue transition-colors">
-                  {post.title}
-                </h2>
-              </Link>
+              <h2 className="text-xl sm:text-2xl font-bold text-text-primary mb-3 group-hover:text-accent-blue transition-colors">
+                {post.title}
+              </h2>
 
               {/* Summary */}
-              <p className="text-text-muted leading-relaxed mb-4">
-                {post.summary}
-              </p>
+              <p className="text-text-muted leading-relaxed mb-4">{post.summary}</p>
 
               {/* Tags */}
               <div className="flex flex-wrap gap-2 mb-4">
@@ -86,26 +81,18 @@ export default function BlogPage() {
                 ))}
               </div>
 
-              {/* Read More Link */}
-              <Link
-                href={`/blog/${post.slug}`}
-                className="inline-flex items-center gap-2 text-accent-green font-medium text-sm group/link hover:gap-3 transition-all"
-              >
+              {/* Read More */}
+              <span className="inline-flex items-center gap-2 text-accent-green font-medium text-sm group-hover:gap-3 transition-all">
                 Read Article
-                <ArrowRight
-                  size={16}
-                  className="group-hover/link:translate-x-1 transition-transform"
-                />
-              </Link>
-            </article>
+                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </span>
+            </Link>
           ))}
         </div>
 
         {posts.length === 0 && (
           <div className="text-center py-20">
-            <p className="text-text-muted text-lg">
-              No blog posts yet. Check back soon!
-            </p>
+            <p className="text-text-muted text-lg">No blog posts yet. Check back soon!</p>
           </div>
         )}
       </div>
