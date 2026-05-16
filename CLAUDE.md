@@ -144,10 +144,7 @@ Edit `data/resume.ts` — all section pages pull from this file automatically.
 Deployed via GitHub Actions (`.github/workflows/nextjs.yml`).
 
 ### SSH Config for Push
-Uses `github-clouddevang` host with dedicated SSH key:
-```bash
-GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_clouddevang -o IdentitiesOnly=yes" git push origin <branch>
-```
+Uses a dedicated SSH key configured in `~/.ssh/config`. Push using the standard git push command.
 
 ## Known Patterns
 
