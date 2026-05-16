@@ -84,7 +84,7 @@ export default function Certifications() {
                     {styles.icon}
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-sm sm:text-base font-semibold text-text-primary truncate">
+                    <h3 className="text-sm sm:text-base font-semibold text-text-primary">
                       {cert.name}
                     </h3>
                     <p className="text-xs sm:text-sm text-text-muted font-mono mt-1">
