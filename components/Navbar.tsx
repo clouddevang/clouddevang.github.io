@@ -46,6 +46,21 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
+  // On homepage load, check if we navigated here from a blog page
+  // targeting a specific section
+  useEffect(() => {
+    if (pathname !== '/') return;
+    const target = sessionStorage.getItem('scrollTarget');
+    if (!target) return;
+    sessionStorage.removeItem('scrollTarget');
+    // Wait for page to fully render before scrolling
+    const timer = setTimeout(() => {
+      const el = document.getElementById(target);
+      if (el) scrollToSection(el);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [pathname]);
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -81,9 +96,9 @@ export default function Navbar() {
           scrollToSection(element);
         }
       } else {
-        // Full-page navigation so the browser handles the hash scroll
-        // natively after the static page loads — router.push misses it.
-        window.location.href = '/' + href;
+        // Store target section, navigate to home, then scroll after load
+        sessionStorage.setItem('scrollTarget', href.slice(1));
+        window.location.href = '/';
       }
     }
   };
