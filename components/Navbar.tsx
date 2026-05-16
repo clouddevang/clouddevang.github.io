@@ -134,7 +134,17 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-1 text-xl font-bold">
+            <Link
+              href="/"
+              onClick={(e) => {
+                if (pathname === '/') {
+                  // Already on home — scroll to top instead of no-op
+                  e.preventDefault();
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+              }}
+              className="flex items-center gap-1 text-xl font-bold"
+            >
               <span className="text-accent-blue">&lt;</span>
               <span className="text-text-primary">DG</span>
               <span className="text-accent-blue">/&gt;</span>
