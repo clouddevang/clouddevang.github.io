@@ -328,3 +328,12 @@ textarea:focus {
 .mdx-content tr:hover td {
   @apply bg-card/60;
 }
+
+/* Hide scrollbar for horizontal scroll rows */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

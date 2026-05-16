@@ -7,12 +7,12 @@ import { personal } from '@/data/resume';
 import { Github, Linkedin, Mail, ArrowUp } from 'lucide-react';
 
 const quickLinks = [
-  { href: '#about', label: 'About' },
-  { href: '#skills', label: 'Skills' },
-  { href: '#experience', label: 'Experience' },
-  { href: '#projects', label: 'Projects' },
-  { href: '/blog', label: 'Blog' },
-  { href: '#contact', label: 'Contact' },
+  { href: '/about',          label: 'About'          },
+  { href: '/skills',         label: 'Skills'         },
+  { href: '/experience',     label: 'Experience'     },
+  { href: '/projects',       label: 'Projects'       },
+  { href: '/blog',           label: 'Blog'           },
+  { href: '/contact',        label: 'Contact'        },
 ];
 
 const socialLinks = [
@@ -36,15 +36,6 @@ const socialLinks = [
 export default function Footer() {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleNavClick = (href: string) => {
-    if (href.startsWith('#')) {
-      const element = document.getElementById(href.slice(1));
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
   };
 
   return (
@@ -72,12 +63,6 @@ export default function Footer() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  onClick={(e) => {
-                    if (link.href.startsWith('#')) {
-                      e.preventDefault();
-                      handleNavClick(link.href);
-                    }
-                  }}
                   className="text-text-muted hover:text-accent-blue transition-colors text-sm"
                 >
                   {link.label}

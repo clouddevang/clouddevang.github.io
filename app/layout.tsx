@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import ScrollProgress from '@/components/ScrollProgress';
 import CursorGlow from '@/components/CursorGlow';
 import MilestoneNav from '@/components/MilestoneNav';
+import ClientProviders from '@/components/shared/ClientProviders';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -84,7 +85,9 @@ export default function RootLayout({
         <CursorGlow />
         <MilestoneNav />
         <Navbar />
-        <main>{children}</main>
+        <main>
+          <ClientProviders>{children}</ClientProviders>
+        </main>
         <Footer />
       </body>
     </html>
