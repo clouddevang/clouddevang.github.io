@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const sections = [
@@ -15,8 +16,11 @@ const sections = [
 ];
 
 export default function MilestoneNav() {
+  const pathname = usePathname();
   const [active, setActive] = useState('');
   const [hovered, setHovered] = useState<string | null>(null);
+
+  if (pathname !== '/') return null;
 
   useEffect(() => {
     const onScroll = () => {
