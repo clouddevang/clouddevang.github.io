@@ -58,6 +58,7 @@ export interface SkillGroup {
 }
 
 export interface Certification {
+  slug: string;
   name: string;
   issuer: string;
   year: string;
@@ -365,42 +366,49 @@ export const skills: SkillGroup[] = [
 
 export const certifications: Certification[] = [
   {
+    slug: 'aws-devops-professional',
     name: 'AWS Certified DevOps Engineer – Professional',
     issuer: 'Amazon Web Services',
     year: 'Oct 2024',
     type: 'aws',
   },
   {
+    slug: 'aws-solutions-architect',
     name: 'AWS Certified Solutions Architect – Associate',
     issuer: 'Amazon Web Services',
     year: '2024',
     type: 'aws',
   },
   {
+    slug: 'aws-developer',
     name: 'AWS Certified Developer – Associate',
     issuer: 'Amazon Web Services',
     year: '2024',
     type: 'aws',
   },
   {
+    slug: 'aws-sysops',
     name: 'AWS Certified SysOps Administrator – Associate',
     issuer: 'Amazon Web Services',
     year: '2024',
     type: 'aws',
   },
   {
+    slug: 'aws-cloud-practitioner',
     name: 'AWS Certified Cloud Practitioner',
     issuer: 'Amazon Web Services',
     year: '2023',
     type: 'aws',
   },
   {
+    slug: 'azure-fundamentals',
     name: 'Microsoft Azure Fundamentals',
     issuer: 'Microsoft',
     year: '2024',
     type: 'azure',
   },
   {
+    slug: 'jlpt-n3',
     name: 'Japanese Language Proficiency Test – JLPT N3',
     issuer: 'Japan Foundation',
     year: '2024',
