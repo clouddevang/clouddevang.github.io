@@ -6,7 +6,6 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ScrollProgress from '@/components/ScrollProgress';
 import CursorGlow from '@/components/CursorGlow';
-import MilestoneNav from '@/components/MilestoneNav';
 import ClientProviders from '@/components/shared/ClientProviders';
 
 const inter = Inter({
@@ -83,7 +82,6 @@ export default function RootLayout({
       <body className="bg-background text-text-primary antialiased">
         <ScrollProgress />
         <CursorGlow />
-        <MilestoneNav />
         <Navbar />
         <main>
           <ClientProviders>{children}</ClientProviders>

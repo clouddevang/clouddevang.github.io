@@ -24,7 +24,7 @@ export default function CertPreviewCard({ cert }: Props) {
     <motion.div
       whileHover={{ scale: 1.03, y: -4 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      onClick={() => router.push('/certifications')}
+      onClick={() => router.push(`/certifications/${cert.slug}`)}
       className="w-56 flex-shrink-0 snap-start bg-card rounded-2xl p-4 cursor-pointer hover:border-white/20 transition-colors flex flex-col items-center text-center"
       style={{ border: `1px solid ${cfg.border}` }}
     >
