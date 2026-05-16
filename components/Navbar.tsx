@@ -37,7 +37,7 @@ function scrollToSection(element: HTMLElement) {
   const target = Math.max(0, getAbsoluteTop(element) - NAVBAR);
   const start  = window.scrollY;
   const dist   = target - start;
-  const dur    = 200;
+  const dur    = 350;
   let t0: number | null = null;
   const ease = (t: number) => 1 - Math.pow(1 - t, 3);
   function step(now: number) {

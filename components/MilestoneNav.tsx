@@ -50,7 +50,7 @@ export default function MilestoneNav() {
     const start = window.scrollY;
     const target = el.getBoundingClientRect().top + window.scrollY - NAVBAR;
     const distance = target - start;
-    const duration = 480;
+    const duration = 350;
     let startTime: number | null = null;
     const ease = (t: number) => 1 - Math.pow(1 - t, 3);
     function step(now: number) {
