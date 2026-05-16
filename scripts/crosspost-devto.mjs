@@ -6,7 +6,7 @@
  *   file is empty or stale.
  * - New posts  → created; Dev.to article ID saved to .devto-articles.json
  * - Existing   → updated in-place using the stored article ID
- * - 1.5 s delay between requests to avoid rate limiting
+ * - 3 s delay between requests + automatic retry on 429 (15s → 30s → 60s)
  *
  * Usage:
  *   DEVTO_API_KEY=<key> node scripts/crosspost-devto.mjs
@@ -28,7 +28,8 @@ const BLOG_DIR       = './content/blog';
 const TRACKING_FILE  = '.devto-articles.json';
 const DEVTO_API      = 'https://dev.to/api/articles';
 const CANONICAL_BASE = 'https://clouddevang.github.io/blog';
-const DELAY_MS       = 1500; // 1.5 s between requests — stays well under rate limit
+const DELAY_MS       = 3000; // 3 s between requests
+const RETRY_DELAYS   = [15000, 30000, 60000]; // waits on 429: 15s, 30s, 60s
 
 // ─── Validate env ─────────────────────────────────────────────────────────────
 
@@ -43,7 +44,7 @@ if (!apiKey) {
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-async function devtoRequest(method, path, body) {
+async function devtoRequest(method, path, body, attempt = 0) {
   const res = await fetch(`${DEVTO_API}${path}`, {
     method,
     headers: {
@@ -53,6 +54,14 @@ async function devtoRequest(method, path, body) {
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
+
+  // Rate limited — wait and retry up to RETRY_DELAYS.length times
+  if (res.status === 429 && attempt < RETRY_DELAYS.length) {
+    const wait = RETRY_DELAYS[attempt];
+    console.warn(`    ⏳ Rate limited (429). Waiting ${wait / 1000}s before retry ${attempt + 1}/${RETRY_DELAYS.length}…`);
+    await sleep(wait);
+    return devtoRequest(method, path, body, attempt + 1);
+  }
 
   const text = await res.text();
   let json;
