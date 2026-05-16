@@ -75,8 +75,8 @@ export default function Experience() {
         >
           {/* Section Header */}
           <motion.div variants={itemVariants} className="text-center mb-16">
-            <p className="text-accent-green font-mono text-sm mb-2 tracking-wider">
-              CAREER
+            <p className="text-accent-green font-mono text-sm mb-2 tracking-wider flex items-center justify-center gap-3">
+              <span className="opacity-50">03 ────</span> CAREER <span className="opacity-50">────</span>
             </p>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
               Work <span className="gradient-text">Experience</span>

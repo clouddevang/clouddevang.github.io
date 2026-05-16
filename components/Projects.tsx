@@ -43,8 +43,8 @@ export default function Projects() {
         >
           {/* Section Header */}
           <motion.div variants={itemVariants} className="text-center mb-16">
-            <p className="text-accent-green font-mono text-sm mb-2 tracking-wider">
-              PORTFOLIO
+            <p className="text-accent-green font-mono text-sm mb-2 tracking-wider flex items-center justify-center gap-3">
+              <span className="opacity-50">04 ────</span> PORTFOLIO <span className="opacity-50">────</span>
             </p>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
               Featured <span className="gradient-text">Projects</span>
