@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { skills } from '@/data/resume';
 import {
   Cloud,
@@ -90,13 +91,13 @@ export default function Skills() {
               const glow = categoryGlow[group.icon];
               const isActive = activeCategory === group.category;
               return (
+              <Link key={group.category} href={`/skills/${group.icon}`} className="block">
               <motion.div
-                key={group.category}
                 id={group.icon}
                 variants={itemVariants}
                 onMouseEnter={() => setActiveCategory(group.category)}
                 onMouseLeave={() => setActiveCategory(null)}
-                className="bg-card border border-border rounded-2xl overflow-hidden transition-all duration-300"
+                className="bg-card border border-border rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer h-full"
                 style={isActive ? {
                   scrollMarginTop: '80px',
                   boxShadow: glow?.shadow,
@@ -144,6 +145,7 @@ export default function Skills() {
                 </div>
                 </div>
               </motion.div>
+              </Link>
             );})}
           </div>
 

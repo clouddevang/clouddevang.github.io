@@ -3,8 +3,9 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { certifications } from '@/data/resume';
-import { Award, Languages } from 'lucide-react';
+import { Languages } from 'lucide-react';
 import { FaAws, FaMicrosoft } from 'react-icons/fa';
 
 const containerVariants = {
@@ -84,13 +85,13 @@ export default function Certifications() {
               const isHovered = hoveredIndex === index;
 
               return (
+                <Link key={index} href={`/certifications/${cert.slug}`} className="block">
                 <motion.div
-                  key={index}
                   variants={itemVariants}
                   whileHover={{ scale: 1.03, y: -3 }}
                   onMouseEnter={() => setHoveredIndex(index)}
                   onMouseLeave={() => setHoveredIndex(null)}
-                  className={`bg-card border-2 ${styles.borderColor} rounded-xl p-5 flex items-center gap-4 transition-all duration-300 cursor-default`}
+                  className={`bg-card border-2 ${styles.borderColor} rounded-xl p-5 flex items-center gap-4 transition-all duration-300 cursor-pointer h-full`}
                   style={{
                     borderColor: isHovered ? styles.hoverBorder : undefined,
                     boxShadow: isHovered ? styles.hoverShadow : undefined,
@@ -113,6 +114,7 @@ export default function Certifications() {
                     </p>
                   </div>
                 </motion.div>
+                </Link>
               );
             })}
           </div>

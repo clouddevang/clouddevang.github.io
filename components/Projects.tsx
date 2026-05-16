@@ -69,7 +69,11 @@ export default function Projects() {
                 key={index}
                 variants={itemVariants}
                 whileHover={{ y: -5 }}
-                className="bg-card border border-border rounded-2xl p-6 sm:p-8 card-hover group relative overflow-hidden"
+                className="bg-card border border-border rounded-2xl p-6 sm:p-8 card-hover group relative overflow-hidden cursor-pointer"
+                onClick={() => {
+                  const dest = project.github ?? project.link;
+                  if (dest) window.open(dest, '_blank', 'noopener,noreferrer');
+                }}
               >
                 {/* Large faint index number */}
                 <span className="absolute top-4 right-5 text-7xl font-bold text-text-muted/5 select-none leading-none">
