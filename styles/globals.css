@@ -19,10 +19,6 @@
   margin: 0;
 }
 
-html {
-  /* Smooth scroll only applied via JS for anchor links */
-}
-
 body {
   background-color: var(--background);
   color: var(--text-primary);
@@ -31,7 +27,7 @@ body {
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -39,8 +35,8 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 4px;
+  background: linear-gradient(to bottom, var(--accent-blue), var(--accent-green));
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -49,8 +45,8 @@ body {
 
 /* Selection color */
 ::selection {
-  background: rgba(0, 212, 255, 0.3);
-  color: var(--text-primary);
+  background: rgba(0, 212, 255, 0.25);
+  color: #fff;
 }
 
 /* Grid background pattern */
@@ -61,21 +57,33 @@ body {
   background-size: 50px 50px;
 }
 
-/* Gradient text */
+/* Gradient text — shimmer animation */
 .gradient-text {
-  background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-green) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--accent-blue) 0%,
+    var(--accent-green) 50%,
+    var(--accent-blue) 100%
+  );
+  background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  animation: text-shimmer 5s linear infinite;
+}
+
+@keyframes text-shimmer {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
 }
 
 /* Glow effects */
 .glow-blue {
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
 }
 
 .glow-green {
-  box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
 }
 
 /* Card hover effect */
@@ -84,9 +92,11 @@ body {
 }
 
 .card-hover:hover {
-  border-color: rgba(0, 212, 255, 0.4);
+  border-color: rgba(0, 212, 255, 0.35);
   transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 212, 255, 0.1);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 24px rgba(0, 212, 255, 0.07);
 }
 
 /* Animated gradient border */
@@ -116,13 +126,13 @@ body {
   height: 1.2em;
   background-color: var(--accent-blue);
   margin-left: 2px;
+  vertical-align: text-bottom;
   animation: blink 0.7s step-end infinite;
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.8);
 }
 
 @keyframes blink {
-  50% {
-    opacity: 0;
-  }
+  50% { opacity: 0; }
 }
 
 /* Timeline styles */
@@ -133,6 +143,7 @@ body {
   bottom: 0;
   width: 2px;
   background: linear-gradient(to bottom, var(--accent-blue), var(--accent-green));
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
 }
 
 .timeline-dot {
@@ -143,6 +154,29 @@ body {
   border-radius: 50%;
   background: var(--accent-blue);
   border: 3px solid var(--background);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+/* Pulse ring on timeline dot */
+.timeline-dot::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-blue);
+  animation: dot-ring 2.5s ease-out infinite;
+  opacity: 0;
+}
+
+@keyframes dot-ring {
+  0%   { transform: scale(0.8); opacity: 0.6; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Float animation with delay (for hero orbs) */
+.animate-float-delayed {
+  animation: float 6s ease-in-out infinite;
+  animation-delay: -3s;
 }
 
 /* MDX content styles */
@@ -220,12 +254,27 @@ body {
 /* Button styles */
 .btn-primary {
   @apply bg-gradient-to-r from-accent-blue to-accent-green text-background font-semibold
-         px-6 py-3 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg;
+         px-6 py-3 rounded-lg transition-all duration-300;
+}
+
+.btn-primary:hover {
+  transform: scale(1.04);
+  box-shadow:
+    0 0 24px rgba(0, 212, 255, 0.35),
+    0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
 }
 
 .btn-secondary {
   @apply border-2 border-border text-text-primary font-semibold px-6 py-3 rounded-lg
          transition-all duration-300 hover:border-accent-blue hover:text-accent-blue;
+}
+
+.btn-secondary:hover {
+  box-shadow: 0 0 16px rgba(0, 212, 255, 0.15);
 }
 
 /* Focus styles for accessibility */
@@ -234,4 +283,27 @@ a:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
   @apply outline-none ring-2 ring-accent-blue ring-offset-2 ring-offset-background;
+}
+
+/* Form input focus glow */
+input:focus,
+textarea:focus {
+  box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.5), 0 0 16px rgba(0, 212, 255, 0.1);
+}
+
+/* MDX table styles */
+.mdx-content table {
+  @apply w-full border-collapse mb-6 text-sm;
+}
+
+.mdx-content th {
+  @apply text-left font-semibold text-accent-blue border-b border-border px-4 py-2 bg-card;
+}
+
+.mdx-content td {
+  @apply border-b border-border/50 px-4 py-2 text-text-primary/90;
+}
+
+.mdx-content tr:hover td {
+  @apply bg-card/60;
 }

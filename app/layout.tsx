@@ -4,6 +4,8 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 import '@/styles/globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import ScrollProgress from '@/components/ScrollProgress';
+import CursorGlow from '@/components/CursorGlow';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -75,6 +77,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="bg-background text-text-primary antialiased">
+        <ScrollProgress />
+        <CursorGlow />
         <Navbar />
         <main>{children}</main>
         <Footer />

@@ -15,6 +15,16 @@ import {
 } from 'lucide-react';
 import { FaAws, FaMicrosoft } from 'react-icons/fa';
 
+const categoryGlow: Record<string, { shadow: string; border: string; iconBg: string }> = {
+  aws:           { shadow: '0 0 32px rgba(255,153,0,0.18)',    border: 'rgba(255,153,0,0.45)',    iconBg: 'rgba(255,153,0,0.15)' },
+  azure:         { shadow: '0 0 32px rgba(0,120,212,0.18)',    border: 'rgba(0,120,212,0.45)',    iconBg: 'rgba(0,120,212,0.15)' },
+  iac:           { shadow: '0 0 32px rgba(139,92,246,0.18)',   border: 'rgba(139,92,246,0.45)',   iconBg: 'rgba(139,92,246,0.15)' },
+  devops:        { shadow: '0 0 32px rgba(0,255,136,0.15)',    border: 'rgba(0,255,136,0.45)',    iconBg: 'rgba(0,255,136,0.12)' },
+  observability: { shadow: '0 0 32px rgba(0,212,255,0.15)',    border: 'rgba(0,212,255,0.45)',    iconBg: 'rgba(0,212,255,0.12)' },
+  languages:     { shadow: '0 0 32px rgba(251,191,36,0.18)',   border: 'rgba(251,191,36,0.45)',   iconBg: 'rgba(251,191,36,0.12)' },
+  fullstack:     { shadow: '0 0 32px rgba(236,72,153,0.18)',   border: 'rgba(236,72,153,0.45)',   iconBg: 'rgba(236,72,153,0.12)' },
+};
+
 const iconMap: Record<string, React.ReactNode> = {
   aws: <FaAws className="w-5 h-5" />,
   azure: <FaMicrosoft className="w-5 h-5" />,
@@ -71,20 +81,31 @@ export default function Skills() {
 
           {/* Skills Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {skills.map((group, index) => (
+            {skills.map((group, index) => {
+              const glow = categoryGlow[group.icon];
+              const isActive = activeCategory === group.category;
+              return (
               <motion.div
                 key={group.category}
                 variants={itemVariants}
                 onMouseEnter={() => setActiveCategory(group.category)}
                 onMouseLeave={() => setActiveCategory(null)}
-                className={`bg-card border border-border rounded-2xl p-6 card-hover ${
-                  activeCategory === group.category ? 'border-accent-blue/40' : ''
-                }`}
+                className="bg-card border border-border rounded-2xl p-6 transition-all duration-300"
+                style={isActive ? {
+                  boxShadow: glow?.shadow,
+                  borderColor: glow?.border,
+                  transform: 'translateY(-4px)',
+                } : {}}
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-lg bg-accent-blue/10 text-accent-blue">
+                  <motion.div
+                    animate={isActive ? { scale: 1.15, rotate: 5 } : { scale: 1, rotate: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="p-2 rounded-lg transition-colors duration-300"
+                    style={{ background: isActive && glow ? glow.iconBg : 'rgba(0,212,255,0.1)', color: 'var(--accent-blue)' }}
+                  >
                     {iconMap[group.icon] || <Cloud className="w-5 h-5" />}
-                  </div>
+                  </motion.div>
                   <h3 className="text-lg font-semibold text-text-primary">
                     {group.category}
                   </h3>
@@ -102,7 +123,7 @@ export default function Skills() {
                   ))}
                 </div>
               </motion.div>
-            ))}
+            );})}
           </div>
 
           {/* Emerging Tech */}
