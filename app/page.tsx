@@ -42,8 +42,8 @@ export default function Home() {
       <HomeBillboard />
 
       <ContentRow label="CAREER" title="Work Experience" href="/experience">
-        {experience.map((job) => (
-          <ExperiencePreviewCard key={job.company} job={job} />
+        {experience.map((job, i) => (
+          <ExperiencePreviewCard key={job.company} job={job} index={i} />
         ))}
       </ContentRow>
 

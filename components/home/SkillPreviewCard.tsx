@@ -40,7 +40,7 @@ export default function SkillPreviewCard({ group }: Props) {
     <motion.div
       whileHover={{ scale: 1.03, y: -4 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      onClick={() => router.push('/skills')}
+      onClick={() => router.push(`/skills#${group.icon}`)}
       className="w-52 flex-shrink-0 snap-start bg-card border border-border rounded-2xl overflow-hidden cursor-pointer hover:border-white/20 transition-colors"
     >
       {/* Colored top bar */}

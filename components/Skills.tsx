@@ -92,15 +92,17 @@ export default function Skills() {
               return (
               <motion.div
                 key={group.category}
+                id={group.icon}
                 variants={itemVariants}
                 onMouseEnter={() => setActiveCategory(group.category)}
                 onMouseLeave={() => setActiveCategory(null)}
                 className="bg-card border border-border rounded-2xl overflow-hidden transition-all duration-300"
                 style={isActive ? {
+                  scrollMarginTop: '80px',
                   boxShadow: glow?.shadow,
                   borderColor: glow?.border,
                   transform: 'translateY(-4px)',
-                } : {}}
+                } : { scrollMarginTop: '80px' }}
               >
                 {/* Coloured top bar */}
                 <div
