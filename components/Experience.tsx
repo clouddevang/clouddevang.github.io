@@ -91,6 +91,8 @@ export default function Experience() {
             {experience.map((job, index) => (
               <motion.div
                 key={index}
+                id={`job-${index}`}
+                style={{ scrollMarginTop: '80px' }}
                 variants={itemVariants}
                 className="relative pb-12 last:pb-0"
               >
