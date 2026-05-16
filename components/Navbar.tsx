@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
@@ -54,6 +54,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection,    setActiveSection]    = useState('');
   const pathname = usePathname();
+  const router   = useRouter();
 
   // After a full-page reload to '/', read sessionStorage and scroll to target
   // once React + framer-motion have settled (500ms is enough).
@@ -76,9 +77,8 @@ export default function Navbar() {
       }
     };
 
-    // 500ms head-start so framer-motion initial states are applied
-    // before we calculate the scroll target.
-    timer = setTimeout(tryScroll, 500);
+    // Small delay so React has painted the home page before we scroll.
+    timer = setTimeout(tryScroll, 80);
     return () => clearTimeout(timer);
   }, [pathname]);
 
@@ -111,10 +111,11 @@ export default function Navbar() {
       const el = document.getElementById(href.slice(1));
       if (el) scrollToSection(el);
     } else {
-      // Full-page reload to home — more reliable than router.push on
-      // a static export. Store target so the useEffect above can scroll.
+      // Client-side nav with scroll:false keeps the viewport in place
+      // (no flash of page-top). The useEffect polls for the element
+      // and scrolls once the home page has rendered.
       sessionStorage.setItem('scrollTarget', href.slice(1));
-      window.location.href = '/';
+      router.push('/', { scroll: false });
     }
   };
 
