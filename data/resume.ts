@@ -122,6 +122,10 @@ export const experience: Experience[] = [
         metrics: [],
       },
       {
+        text: 'Migrated three production AKS clusters from community ingress-nginx to F5 NGINX Ingress Controller OSS (v2.5.1) with zero downtime across all services; implemented idempotent pipeline guards for the IngressClass immutability constraint, rewrote rate limiting from ingress annotations to NGINX http-snippets with geo+map IP-bypass patterns, resolved WebSocket keepalive regressions, and reconfigured Datadog OpenMetrics scraping for the new metrics endpoint.',
+        metrics: ['3 clusters'],
+      },
+      {
         text: 'Automated tenant-wide Service Principal auditing with CI/CD pipelines for centralized governance and proactive Slack alerts on secret and certificate expiry, eliminating all manual overhead.',
         metrics: [],
       },
@@ -304,9 +308,11 @@ export const skills: SkillGroup[] = [
     icon: 'devops',
     skills: [
       { name: 'Kubernetes' },
+      { name: 'Helm' },
       { name: 'Docker' },
       { name: 'GitHub Actions' },
       { name: 'KEDA' },
+      { name: 'Linkerd' },
       { name: 'Akamai' },
       { name: 'Cloudflare' },
     ],
