@@ -179,6 +179,22 @@ body {
   animation-delay: -3s;
 }
 
+/* Specialty card — used in About "What I Do" */
+.specialty-card {
+  transition: all 0.3s ease;
+}
+
+.specialty-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Coloured top bar on skill cards */
+.skill-card-bar {
+  height: 3px;
+  border-radius: 2px 2px 0 0;
+}
+
 /* MDX content styles */
 .mdx-content {
   @apply text-text-primary leading-relaxed;

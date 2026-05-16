@@ -56,16 +56,29 @@ export default function Projects() {
 
           {/* Projects Grid */}
           <div className="grid md:grid-cols-2 gap-6">
-            {projects.map((project, index) => (
+            {projects.map((project, index) => {
+              const colors = [
+                { bg: 'rgba(0,212,255,0.12)', color: '#00D4FF', border: 'rgba(0,212,255,0.3)' },
+                { bg: 'rgba(139,92,246,0.12)', color: '#8B5CF6', border: 'rgba(139,92,246,0.3)' },
+                { bg: 'rgba(0,255,136,0.12)', color: '#00FF88', border: 'rgba(0,255,136,0.3)' },
+                { bg: 'rgba(251,191,36,0.12)', color: '#FBBF24', border: 'rgba(251,191,36,0.3)' },
+              ];
+              const c = colors[index % colors.length];
+              return (
               <motion.div
                 key={index}
                 variants={itemVariants}
                 whileHover={{ y: -5 }}
-                className="bg-card border border-border rounded-2xl p-6 sm:p-8 card-hover group"
+                className="bg-card border border-border rounded-2xl p-6 sm:p-8 card-hover group relative overflow-hidden"
               >
+                {/* Large faint index number */}
+                <span className="absolute top-4 right-5 text-7xl font-bold text-text-muted/5 select-none leading-none">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 rounded-xl bg-accent-blue/10 text-accent-blue">
+                  <div className="p-3 rounded-xl" style={{ background: c.bg, color: c.color }}>
                     {iconMap[project.title] || <Activity className="w-8 h-8" />}
                   </div>
                   <div className="flex items-center gap-3">
@@ -112,14 +125,16 @@ export default function Projects() {
                   {project.technologies.map((tech) => (
                     <span
                       key={tech}
-                      className="px-2.5 py-1 text-xs font-mono bg-accent-green/10 text-accent-green rounded-md"
+                      className="px-2.5 py-1 text-xs font-mono rounded-md border"
+                      style={{ background: c.bg, color: c.color, borderColor: c.border }}
                     >
                       {tech}
                     </span>
                   ))}
                 </div>
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         </motion.div>
       </div>
