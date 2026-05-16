@@ -63,7 +63,9 @@ export default function Navbar() {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       } else {
-        router.push('/' + href);
+        // Full-page navigation so the browser handles the hash scroll
+        // natively after the static page loads — router.push misses it.
+        window.location.href = '/' + href;
       }
     }
   };
