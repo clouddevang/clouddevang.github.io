@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
+import remarkGfm from 'remark-gfm';
 import { getAllSlugs, getPostBySlug } from '@/lib/mdx';
 import { Calendar, Clock, ArrowLeft } from 'lucide-react';
 
@@ -102,7 +103,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
         {/* Content */}
         <div className="mdx-content">
-          <MDXRemote source={post.content} />
+          <MDXRemote source={post.content} options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }} />
         </div>
 
         {/* Footer */}
