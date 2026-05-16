@@ -37,7 +37,7 @@ function scrollToSection(element: HTMLElement) {
   const target = Math.max(0, getAbsoluteTop(element) - NAVBAR);
   const start  = window.scrollY;
   const dist   = target - start;
-  const dur    = 480;
+  const dur    = 200;
   let t0: number | null = null;
   const ease = (t: number) => 1 - Math.pow(1 - t, 3);
   function step(now: number) {
@@ -163,10 +163,7 @@ export default function Navbar() {
                   >
                     {link.label}
                     {isActive && (
-                      <motion.div
-                        layoutId="activeSection"
-                        className="absolute -bottom-1 left-0 right-0 h-0.5 bg-accent-blue"
-                      />
+                      <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-accent-blue rounded-full" />
                     )}
                   </Link>
                 );
