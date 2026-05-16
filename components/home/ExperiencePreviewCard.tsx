@@ -7,10 +7,9 @@ import type { Experience } from '@/data/resume';
 
 interface Props {
   job: Experience;
-  index: number;
 }
 
-export default function ExperiencePreviewCard({ job, index }: Props) {
+export default function ExperiencePreviewCard({ job }: Props) {
   const router = useRouter();
   // Find first bullet that has metrics and extract first metric
   const highlightBullet = job.bullets.find((b) => b.metrics && b.metrics.length > 0);
