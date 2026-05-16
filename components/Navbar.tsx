@@ -18,6 +18,27 @@ const navLinks = [
   { href: '#contact', label: 'Contact' },
 ];
 
+// Custom scroll — fixed 480ms duration regardless of distance,
+// easeOutCubic so it feels snappy not slow.
+function scrollToSection(element: HTMLElement) {
+  const NAVBAR = 72;
+  const start = window.scrollY;
+  const target = element.getBoundingClientRect().top + window.scrollY - NAVBAR;
+  const distance = target - start;
+  const duration = 480;
+  let startTime: number | null = null;
+
+  const ease = (t: number) => 1 - Math.pow(1 - t, 3); // easeOutCubic
+
+  function step(now: number) {
+    if (!startTime) startTime = now;
+    const t = Math.min((now - startTime) / duration, 1);
+    window.scrollTo(0, start + distance * ease(t));
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -57,10 +78,7 @@ export default function Navbar() {
       if (isHomePage) {
         const element = document.getElementById(href.slice(1));
         if (element) {
-          // scrollIntoView is browser-native and respects scroll-margin-top
-          // set in globals.css — avoids manual position math that drifts
-          // when framer-motion animations fire during scroll.
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          scrollToSection(element);
         }
       } else {
         // Full-page navigation so the browser handles the hash scroll

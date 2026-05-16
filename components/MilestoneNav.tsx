@@ -43,7 +43,20 @@ export default function MilestoneNav() {
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const NAVBAR = 72;
+    const start = window.scrollY;
+    const target = el.getBoundingClientRect().top + window.scrollY - NAVBAR;
+    const distance = target - start;
+    const duration = 480;
+    let startTime: number | null = null;
+    const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+    function step(now: number) {
+      if (!startTime) startTime = now;
+      const t = Math.min((now - startTime) / duration, 1);
+      window.scrollTo(0, start + distance * ease(t));
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
   };
 
   return (
