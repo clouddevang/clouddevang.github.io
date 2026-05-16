@@ -57,11 +57,11 @@ export default function Navbar() {
       if (isHomePage) {
         const element = document.getElementById(href.slice(1));
         if (element) {
-          const navbarHeight = 64;
-          const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+          // offsetTop is the static DOM offset — not affected by in-progress
+          // animations or layout shifts, unlike getBoundingClientRect()
           window.scrollTo({
-            top: elementPosition - navbarHeight,
-            behavior: 'smooth'
+            top: element.offsetTop - 64,
+            behavior: 'smooth',
           });
         }
       } else {

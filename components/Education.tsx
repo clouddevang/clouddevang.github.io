@@ -36,8 +36,8 @@ export default function Education() {
         >
           {/* Section Header */}
           <motion.div variants={itemVariants} className="text-center mb-16">
-            <p className="text-accent-green font-mono text-sm mb-2 tracking-wider flex items-center justify-center gap-3">
-              <span className="opacity-50">05 ────</span> ACADEMIC BACKGROUND <span className="opacity-50">────</span>
+            <p className="text-accent-green font-mono text-sm mb-2 tracking-wider">
+              ACADEMIC BACKGROUND
             </p>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
               My <span className="gradient-text">Education</span>
