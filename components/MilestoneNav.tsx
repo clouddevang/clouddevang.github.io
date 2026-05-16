@@ -20,11 +20,12 @@ export default function MilestoneNav() {
   const [active, setActive] = useState('');
   const [hovered, setHovered] = useState<string | null>(null);
 
-  if (pathname !== '/') return null;
-
+  // All hooks must be called before any early return (Rules of Hooks).
+  // Guard inside the effect body instead.
   useEffect(() => {
+    if (pathname !== '/') return;
+
     const onScroll = () => {
-      // Walk sections in reverse to find the last one whose top is above the fold
       for (const s of [...sections].reverse()) {
         const el = document.getElementById(s.id);
         if (el && el.getBoundingClientRect().top <= 140) {
@@ -38,7 +39,9 @@ export default function MilestoneNav() {
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [pathname]);
+
+  if (pathname !== '/') return null;
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
