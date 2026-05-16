@@ -18,6 +18,7 @@ export interface ExperienceBullet {
 }
 
 export interface Experience {
+  slug: string;
   company: string;
   role: string;
   startDate: string;
@@ -83,6 +84,7 @@ export const personal: Personal = {
 
 export const experience: Experience[] = [
   {
+    slug: 'bitflyer',
     company: 'BitFlyer',
     role: 'Site Reliability Engineer',
     startDate: 'Nov 2024',
@@ -144,6 +146,7 @@ export const experience: Experience[] = [
     ],
   },
   {
+    slug: 'accenture-sre',
     company: 'Accenture Japan',
     role: 'SRE & Cloud Engineer',
     startDate: 'Mar 2022',
@@ -189,6 +192,7 @@ export const experience: Experience[] = [
     ],
   },
   {
+    slug: 'accenture-fullstack',
     company: 'Accenture Japan',
     role: 'Full Stack Engineer',
     startDate: 'Jan 2021',

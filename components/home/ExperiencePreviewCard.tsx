@@ -7,10 +7,9 @@ import type { Experience } from '@/data/resume';
 
 interface Props {
   job: Experience;
-  index: number;
 }
 
-export default function ExperiencePreviewCard({ job, index }: Props) {
+export default function ExperiencePreviewCard({ job }: Props) {
   const router = useRouter();
   // Find first bullet that has metrics and extract first metric
   const highlightBullet = job.bullets.find((b) => b.metrics && b.metrics.length > 0);
@@ -20,7 +19,7 @@ export default function ExperiencePreviewCard({ job, index }: Props) {
     <motion.div
       whileHover={{ scale: 1.03, y: -4 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      onClick={() => router.push(`/experience#job-${index}`)}
+      onClick={() => router.push(`/experience/${job.slug}`)}
       className="w-72 flex-shrink-0 snap-start bg-card border border-border rounded-2xl p-5 cursor-pointer hover:border-accent-blue/40 transition-colors group"
     >
       {/* Company */}
