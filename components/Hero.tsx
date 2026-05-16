@@ -51,9 +51,9 @@ export default function Hero() {
       {/* Animated Grid Background */}
       <div className="absolute inset-0 grid-pattern opacity-50" />
 
-      {/* Gradient Orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent-blue/20 rounded-full blur-[128px] animate-pulse-slow" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent-green/15 rounded-full blur-[128px] animate-pulse-slow" />
+      {/* Gradient Orbs — hidden on mobile, GPU-intensive */}
+      <div className="hidden md:block absolute top-1/4 left-1/4 w-96 h-96 bg-accent-blue/20 rounded-full blur-[128px] animate-pulse-slow" />
+      <div className="hidden md:block absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent-green/15 rounded-full blur-[128px] animate-pulse-slow" />
 
       {/* Content */}
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -134,13 +134,9 @@ export default function Hero() {
         transition={{ delay: 1, duration: 0.5 }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2"
       >
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ repeat: Infinity, duration: 1.5 }}
-          className="w-6 h-10 border-2 border-text-muted rounded-full flex justify-center p-2"
-        >
-          <motion.div className="w-1.5 h-1.5 bg-accent-blue rounded-full" />
-        </motion.div>
+        <div className="w-6 h-10 border-2 border-text-muted rounded-full flex justify-center p-2">
+          <div className="w-1.5 h-1.5 bg-accent-blue rounded-full" />
+        </div>
       </motion.div>
     </section>
   );
