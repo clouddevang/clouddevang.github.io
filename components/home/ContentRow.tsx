@@ -52,8 +52,8 @@ export default function ContentRow({ title, href, children }: ContentRowProps) {
             <h2 className="text-xl sm:text-2xl font-bold text-text-primary">{title}</h2>
           </div>
           <div className="flex items-center gap-3">
-            {/* Arrow buttons — hidden on mobile */}
-            <div className="hidden sm:flex items-center gap-1.5">
+            {/* Arrow buttons — hidden on mobile or when no scrolling needed */}
+            <div className={`hidden sm:flex items-center gap-1.5 ${!canScrollLeft && !canScrollRight ? 'invisible' : ''}`}>
               <button
                 onClick={() => scroll('left')}
                 disabled={!canScrollLeft}
