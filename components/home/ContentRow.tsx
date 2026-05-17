@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface ContentRowProps {
-  label: string;
+  label?: string;
   title: string;
   href: string;
   children: React.ReactNode;
@@ -13,7 +13,7 @@ interface ContentRowProps {
 
 const SCROLL_BY = 320;
 
-export default function ContentRow({ label, title, href, children }: ContentRowProps) {
+export default function ContentRow({ title, href, children }: ContentRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft,  setCanScrollLeft]  = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -49,14 +49,11 @@ export default function ContentRow({ label, title, href, children }: ContentRowP
         {/* Row Header */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-baseline gap-3">
-            <span className="font-mono text-xs text-accent-green tracking-widest uppercase">
-              {label}
-            </span>
             <h2 className="text-xl sm:text-2xl font-bold text-text-primary">{title}</h2>
           </div>
           <div className="flex items-center gap-3">
-            {/* Arrow buttons */}
-            <div className="flex items-center gap-1.5">
+            {/* Arrow buttons — hidden on mobile */}
+            <div className="hidden sm:flex items-center gap-1.5">
               <button
                 onClick={() => scroll('left')}
                 disabled={!canScrollLeft}

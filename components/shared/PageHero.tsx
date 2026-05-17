@@ -3,13 +3,13 @@
 import { motion } from 'framer-motion';
 
 interface PageHeroProps {
-  label: string;
+  label?: string;
   title: string;
   titleHighlight: string;
   description?: string;
 }
 
-export default function PageHero({ label, title, titleHighlight, description }: PageHeroProps) {
+export default function PageHero({ title, titleHighlight, description }: PageHeroProps) {
   const beforeHighlight = title.slice(0, title.lastIndexOf(titleHighlight));
   const afterHighlight  = title.slice(title.lastIndexOf(titleHighlight) + titleHighlight.length);
 
@@ -24,9 +24,6 @@ export default function PageHero({ label, title, titleHighlight, description }: 
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <p className="font-mono text-xs text-accent-green tracking-widest uppercase mb-3">
-            {label}
-          </p>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-text-primary mb-4 leading-tight">
             {beforeHighlight}
             <span className="gradient-text">{titleHighlight}</span>
